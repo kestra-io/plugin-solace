@@ -1,0 +1,20 @@
+id: trigger
+namespace: io.kestra.tests
+
+triggers:
+  - id: watch
+    type: io.kestra.plugin.solace.Trigger
+    interval: PT10S
+    vpn: default
+    host: "localhost:55555"
+    username: user
+    password: pass
+    queueName: test
+    queueType: DURABLE_EXCLUSIVE
+    messageDeserializer: STRING
+
+
+tasks:
+  - id: end
+    type: io.kestra.core.tasks.debugs.Return
+    format: "{{task.id}} > {{taskrun.startDate}}"
