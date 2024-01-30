@@ -6,9 +6,9 @@ import com.solace.messaging.publisher.MessagePublisher;
 import com.solace.messaging.publisher.OutboundMessage;
 import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.solace.serde.Serde;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
 import org.slf4j.Logger;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 import java.io.BufferedReader;
 import java.time.Duration;
@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+
+import static io.kestra.core.utils.Rethrow.throwFunction;
 
 public abstract class AbstractSolaceDirectMessagePublisher {
 
@@ -52,12 +54,12 @@ public abstract class AbstractSolaceDirectMessagePublisher {
         MessagePublisher publisher = open(messagingService);
         logger.debug("Connected to Solace instance name {}", publisher.publisherInfo().getInstanceName());
         try (reader) {
-            Flowable<OutboundMessageObject> flowable = Flowable.create(
+            Flux<OutboundMessageObject> flowable = Flux.create(
                 FileSerde.reader(reader, OutboundMessageObject.class),
-                BackpressureStrategy.BUFFER
+                FluxSink.OverflowStrategy.BUFFER
             );
             final Integer numSentMessages = flowable
-                .map(outboundMessageObject -> {
+                .map(throwFunction(outboundMessageObject -> {
                     final OutboundMessage message = buildOutboundMessage(
                         messagingService,
                         outboundMessageObject,
@@ -65,9 +67,9 @@ public abstract class AbstractSolaceDirectMessagePublisher {
                     );
                     publish(message);
                     return 1;
-                })
+                }))
                 .reduce(Integer::sum)
-                .blockingGet();
+                .block();
             terminate(publisher);
             return new SendResult(numSentMessages);
         } catch (Exception e) {
