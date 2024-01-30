@@ -4,8 +4,8 @@ import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Map;
 
