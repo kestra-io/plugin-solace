@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
