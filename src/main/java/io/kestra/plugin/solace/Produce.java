@@ -73,7 +73,7 @@ import java.util.Map;
                     topicDestination: /test
                     host: localhost:55555
                     username: admin
-                    password admin
+                    password: admin
                     vpn: default
                     messageSerializer: "JSON"
                 """

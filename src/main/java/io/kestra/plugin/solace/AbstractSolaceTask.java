@@ -12,7 +12,7 @@ import java.util.Map;
 @NoArgsConstructor
 @SuperBuilder
 @Getter
-public class AbstractSolaceTask extends Task implements SolaceConnectionInterface {
+abstract class AbstractSolaceTask extends Task implements SolaceConnectionInterface {
 
     private String username;
 

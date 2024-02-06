@@ -46,7 +46,7 @@ import java.util.Optional;
                     interval: PT30S
                     host: localhost:55555
                     username: admin
-                    password admin
+                    password: admin
                     vpn: default
                     messageDeserializer: JSON
                 """
