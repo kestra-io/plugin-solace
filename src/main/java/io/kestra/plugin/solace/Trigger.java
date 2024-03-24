@@ -49,6 +49,8 @@ import java.util.Optional;
                     password: admin
                     vpn: default
                     messageDeserializer: JSON
+                    queueName: test_queue
+                    queueType: DURABLE_EXCLUSIVE
                 """
         }
     )

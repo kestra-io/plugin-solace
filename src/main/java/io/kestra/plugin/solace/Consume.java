@@ -45,10 +45,11 @@ import java.util.Map;
                   type: io.kestra.plugin.solace.Consume
                   host: localhost:55555
                   username: admin
-                  password admin
+                  password: admin
                   vpn: default
-                  maxPollDuration: PT05S
                   messageDeserializer: JSON
+                  queueName: test_queue
+                  queueType: DURABLE_EXCLUSIVE
                 """
         }
     )
