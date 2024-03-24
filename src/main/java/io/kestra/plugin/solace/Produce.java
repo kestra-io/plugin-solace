@@ -46,8 +46,8 @@ import java.util.Map;
                 id: SendMessagesIntoSolaceBroker
                 namespace: company.team
                 inputs:
-                  - type: FILE
-                    name: file
+                  - id: file
+                    type: FILE
                     description: a CSV file with columns id, username, tweet, and timestamp
                 tasks:
                   - id: readCsvFile
@@ -70,7 +70,7 @@ import java.util.Map;
                   - id: sendMessageToSolace
                     type: io.kestra.plugin.solace.Produce
                     from: "{{ outputs.transformRowToJson.uri }}"
-                    topicDestination: /test
+                    topicDestination: test/tweets
                     host: localhost:55555
                     username: admin
                     password: admin
