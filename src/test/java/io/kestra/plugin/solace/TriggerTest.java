@@ -1,6 +1,7 @@
 package io.kestra.plugin.solace;
 
 import com.google.common.collect.ImmutableMap;
+import io.kestra.core.utils.IdUtils;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.queues.QueueFactoryInterface;
 import io.kestra.core.queues.QueueInterface;
@@ -59,7 +60,7 @@ class TriggerTest extends BaseSolaceIT {
         CountDownLatch queueCount = new CountDownLatch(1);
 
         // scheduler
-        Worker worker = new Worker(applicationContext, 8, null);
+        Worker worker = applicationContext.createBean(Worker.class, IdUtils.create(), 8, null);
         try (
             AbstractScheduler scheduler = new DefaultScheduler(
                 this.applicationContext,
