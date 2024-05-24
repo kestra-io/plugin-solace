@@ -38,7 +38,7 @@ import java.util.Optional;
                 namespace: company.team
                 tasks:
                   - id: hello
-                    type: io.kestra.core.tasks.log.Log
+                    type: io.kestra.plugin.core.log.Log
                     message: Hello there! I received {{trigger.messagesCount}} from Solace!
                 triggers:
                   - id: readFromSolace
