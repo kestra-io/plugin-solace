@@ -4,7 +4,7 @@ import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.kestra.core.junit.annotations.KestraTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import org.testcontainers.solace.Service;
 import java.util.List;
 import java.util.Map;
 
-@MicronautTest
+@KestraTest
 class ProduceTest extends BaseSolaceIT {
 
     @Inject

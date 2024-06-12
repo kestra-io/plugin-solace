@@ -8,7 +8,7 @@ import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.kestra.core.junit.annotations.KestraTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import java.io.StringReader;
 import java.time.Duration;
 import java.util.Collections;
 
-@MicronautTest
+@KestraTest
 class ConsumeTest extends BaseSolaceIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConsumeTest.class);
