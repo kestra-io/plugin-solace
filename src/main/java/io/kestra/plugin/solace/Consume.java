@@ -126,7 +126,7 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
                 });
 
             output.flush();
-            return new Output(totalReceivedMessages, runContext.putTempFile(tempFile));
+            return new Output(totalReceivedMessages, runContext.storage().putFile(tempFile));
         }
     }
 
