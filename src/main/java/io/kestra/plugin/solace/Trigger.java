@@ -124,7 +124,7 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
             .id(runContext.getTriggerExecutionId())
             .namespace(context.getNamespace())
             .flowId(context.getFlowId())
-            .flowRevision(context.getFlowRevision())
+            .flowRevision(conditionContext.getFlow().getRevision())
             .state(new State())
             .trigger(executionTrigger)
             .build();
