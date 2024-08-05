@@ -96,7 +96,7 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
 
     Output run(RunContext runContext, SolaceConsumeInterface task) throws Exception {
 
-        File tempFile = runContext.tempFile(".ion").toFile();
+        File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
         try (
             BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(tempFile))
         ) {
