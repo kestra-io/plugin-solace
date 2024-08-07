@@ -47,7 +47,7 @@ jobs:
 
       # Gradle check
       - name: Build with Gradle
-        run: ./gradlew check -refresh-dependencies
+        run: ./gradlew check --refresh-dependencies
 
       # Publish
       - name: Publish package to Sonatype
