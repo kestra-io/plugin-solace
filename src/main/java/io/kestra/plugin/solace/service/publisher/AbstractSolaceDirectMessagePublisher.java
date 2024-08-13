@@ -53,11 +53,8 @@ public abstract class AbstractSolaceDirectMessagePublisher {
 
         MessagePublisher publisher = open(messagingService);
         logger.debug("Connected to Solace instance name {}", publisher.publisherInfo().getInstanceName());
-        try (reader) {
-            Flux<OutboundMessageObject> flowable = Flux.create(
-                FileSerde.reader(reader, OutboundMessageObject.class),
-                FluxSink.OverflowStrategy.BUFFER
-            );
+        try {
+            Flux<OutboundMessageObject> flowable = FileSerde.readAll(reader, OutboundMessageObject.class);
             final Integer numSentMessages = flowable
                 .map(throwFunction(outboundMessageObject -> {
                     final OutboundMessage message = buildOutboundMessage(
