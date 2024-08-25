@@ -43,19 +43,22 @@ import java.util.Map;
         full = true,
         code = {
             """
-                id: SendMessagesIntoSolaceBroker
+                id: send_messages_to_solace_queue
                 namespace: company.team
+
                 inputs:
                   - id: file
                     type: FILE
                     description: a CSV file with columns id, username, tweet, and timestamp
+                
                 tasks:
-                  - id: readCsvFile
+                  - id: read_csv_file
                     type: io.kestra.plugin.serdes.csv.CsvToIon
                     from: "{{ inputs.file }}"
-                  - id: transformRowToJson
+
+                  - id: transform_row_to_json
                     type: io.kestra.plugin.scripts.nashorn.FileTransform
-                    from: "{{ outputs.readCsvFile.uri }}"
+                    from: "{{ outputs.read_csv_file.uri }}"
                     script: |
                       var result = {
                         "payload": {
@@ -67,9 +70,10 @@ import java.util.Map;
                         }
                       };
                       row = result
-                  - id: sendMessageToSolace
+                    
+                  - id: send_message_to_solace
                     type: io.kestra.plugin.solace.Produce
-                    from: "{{ outputs.transformRowToJson.uri }}"
+                    from: "{{ outputs.transform_row_to_json.uri }}"
                     topicDestination: test/tweets
                     host: localhost:55555
                     username: admin

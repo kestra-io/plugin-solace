@@ -34,15 +34,17 @@ import java.util.Optional;
         full = true,
         code = {
             """
-                id: TriggerFromSolaceQueue
+                id: trigger_from_solace_queue
                 namespace: company.team
+
                 tasks:
                   - id: hello
                     type: io.kestra.plugin.core.log.Log
-                    message: Hello there! I received {{trigger.messagesCount}} from Solace!
+                    message: Hello there! I received {{ trigger.messagesCount }} from Solace!
+                
                 triggers:
-                  - id: readFromSolace
-                    type: "io.kestra.plugin.solace.Trigger"
+                  - id: read_from_solace
+                    type: io.kestra.plugin.solace.Trigger
                     interval: PT30S
                     host: localhost:55555
                     username: admin
