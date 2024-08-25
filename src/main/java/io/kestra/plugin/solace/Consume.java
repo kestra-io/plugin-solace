@@ -38,18 +38,19 @@ import java.util.Map;
         full = true,
         code = {
             """
-                id: ConsumeMessageFromSolaceQueue
+                id: consume_message_from_solace_queue
                 namespace: company.team
+
                 tasks:
-                - id: consumeFomSolace
-                  type: io.kestra.plugin.solace.Consume
-                  host: localhost:55555
-                  username: admin
-                  password: admin
-                  vpn: default
-                  messageDeserializer: JSON
-                  queueName: test_queue
-                  queueType: DURABLE_EXCLUSIVE
+                  - id: consume_from_solace
+                    type: io.kestra.plugin.solace.Consume
+                    host: localhost:55555
+                    username: admin
+                    password: admin
+                    vpn: default
+                    messageDeserializer: JSON
+                    queueName: test_queue
+                    queueType: DURABLE_EXCLUSIVE
                 """
         }
     )
