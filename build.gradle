@@ -1,9 +1,10 @@
 plugins {
     id 'java-library'
     id "idea"
+    id 'jacoco'
     id "com.adarshr.test-logger" version "4.0.0"
     id "com.github.johnrengelman.shadow" version "8.1.1"
-    id 'ru.vyarus.java-lib' version '2.4.0'
+    id 'ru.vyarus.java-lib' version '3.0.0'
     id 'ru.vyarus.github-info' version '2.0.0'
     id 'signing'
     id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
@@ -38,7 +39,7 @@ dependencies {
     implementation enforcedPlatform("io.kestra:platform:$kestraVersion")
     api enforcedPlatform("io.kestra:platform:$kestraVersion")
 
-    // Lombok
+    // lombok
     annotationProcessor "org.projectlombok:lombok"
     compileOnly "org.projectlombok:lombok"
 
@@ -106,6 +107,40 @@ dependencies {
 }
 
 /**********************************************************************************************************************\
+ * Allure Reports
+ **********************************************************************************************************************/
+dependencies {
+    testImplementation enforcedPlatform("io.kestra:platform:$kestraVersion")
+    testImplementation "io.qameta.allure:allure-junit5"
+}
+
+configurations {
+    agent {
+        canBeResolved = true
+        canBeConsumed = true
+    }
+}
+
+dependencies {
+    agent "org.aspectj:aspectjweaver:1.9.22.1"
+}
+
+test {
+    jvmArgs = [ "-javaagent:${configurations.agent.singleFile}" ]
+}
+
+/**********************************************************************************************************************\
+ * Jacoco
+ **********************************************************************************************************************/
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+}
+
+/**********************************************************************************************************************\
  * Publish
  **********************************************************************************************************************/
 nexusPublishing {
@@ -131,11 +166,11 @@ jar {
     }
 }
 
-pom {
+maven.pom {
     developers {
         developer {
-            id "tchiotludo"
-            name "Ludovic Dehon"
+            id = "tchiotludo"
+            name = "Ludovic Dehon"
         }
     }
 }
@@ -148,6 +183,11 @@ shadowJar {
 github {
     user 'kestra-io'
     license 'Apache'
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    // Suppression this validation error as we want to enforce the Kestra platform
+    suppressedValidationErrors.add('enforced-platform')
 }
 
 /**********************************************************************************************************************\
@@ -163,11 +203,6 @@ release {
     git {
         requireBranch.set('master')
     }
-}
-
-tasks.withType(GenerateModuleMetadata).configureEach {
-    // Suppression this validation error as we want to enforce the Kestra platform
-    suppressedValidationErrors.add('enforced-platform')
 }
 
 /**********************************************************************************************************************\
