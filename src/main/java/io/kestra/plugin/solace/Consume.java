@@ -3,6 +3,7 @@ package io.kestra.plugin.solace;
 import com.solace.messaging.MessagingService;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
@@ -13,20 +14,20 @@ import io.kestra.plugin.solace.service.receiver.QueueTypes;
 import io.kestra.plugin.solace.service.receiver.ReceiverContext;
 import io.kestra.plugin.solace.service.receiver.SolacePersistentMessageReceiver;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 
-import jakarta.validation.constraints.NotNull;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -68,24 +69,24 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
 
     // TASK'S PROPERTIES
     @NotNull
-    private String queueName;
+    private Property<String> queueName;
 
     @NotNull
-    private QueueTypes queueType;
+    private Property<QueueTypes> queueType;
 
     @Builder.Default
-    private Serdes messageDeserializer = Serdes.STRING;
+    private Property<Serdes> messageDeserializer = Property.of(Serdes.STRING);
 
     @Builder.Default
-    private Map<String, Object> messageDeserializerProperties = Collections.emptyMap();
+    private Property<Map<String, Object>> messageDeserializerProperties = Property.of(new HashMap<>());
 
     @Builder.Default
-    private Integer maxMessages = 100;
+    private Property<Integer> maxMessages = Property.of(100);
 
     @Builder.Default
-    private Duration maxDuration = Duration.ofSeconds(10);
+    private Property<Duration> maxDuration = Property.of(Duration.ofSeconds(10));
 
-    private String messageSelector;
+    private Property<String> messageSelector;
 
     /**
      * {@inheritDoc}
@@ -101,23 +102,24 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
         try (
             BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(tempFile))
         ) {
-            final Serde serde = task
-                .getMessageDeserializer()
-                .create(task.getMessageDeserializerProperties());
-            final MessagingService service = MessagingServiceFactory.create(task.render(runContext));
+            final Serde serde = runContext.render(task
+                .getMessageDeserializer()).as(Serdes.class).orElseThrow()
+                .create(runContext.render(task.getMessageDeserializerProperties()).asMap(String.class, Object.class));
+            final MessagingService service = MessagingServiceFactory.create(task, runContext);
             final Logger logger = runContext.logger();
             SolacePersistentMessageReceiver receiver = new SolacePersistentMessageReceiver(serde, logger);
 
-            final String queueName = runContext.render(task.getQueueName());
+            final String queueName = runContext.render(task.getQueueName()).as(String.class).orElseThrow();
 
             int totalReceivedMessages = receiver.poll(
                 service,
                 new ReceiverContext(
-                    task.getMaxDuration(),
-                    task.getMaxMessages(),
-                    task.getMessageSelector()
+                    runContext.render(task.getMaxDuration()).as(Duration.class).orElse(null),
+                    runContext.render(task.getMaxMessages()).as(Integer.class).orElse(null),
+                    runContext.render(task.getMessageSelector()).as(String.class).orElse(null)
                 ),
-                task.getQueueType().get(queueName),
+                runContext.render(task.getQueueType()).as(QueueTypes.class).orElseThrow()
+                    .get(queueName),
                 message -> {
                     try {
                         FileSerde.write(output, message);

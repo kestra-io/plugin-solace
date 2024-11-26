@@ -2,13 +2,14 @@ package io.kestra.plugin.solace;
 
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.resources.Topic;
+import io.kestra.core.junit.annotations.KestraTest;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
-import io.kestra.core.junit.annotations.KestraTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,21 +38,21 @@ class ConsumeTest extends BaseSolaceIT {
         createQueueWithSubscriptionTopic(TEST_QUEUE, "topic");
 
         Consume task = Consume.builder()
-            .messageDeserializer(Serdes.STRING)
-            .username(SOLACE_USER)
-            .password(SOLACE_PASSWORD)
-            .vpn(SOLACE_VPN)
-            .host(solaceContainer.getOrigin(Service.SMF))
-            .maxDuration(Duration.ofSeconds(5))
-            .maxMessages(1)
-            .queueName(TEST_QUEUE)
-            .queueType(QueueTypes.DURABLE_EXCLUSIVE)
+            .messageDeserializer(Property.of(Serdes.STRING))
+            .username(Property.of(SOLACE_USER))
+            .password(Property.of(SOLACE_PASSWORD))
+            .vpn(Property.of(SOLACE_VPN))
+            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
+            .maxDuration(Property.of(Duration.ofSeconds(5)))
+            .maxMessages(Property.of(1))
+            .queueName(Property.of(TEST_QUEUE))
+            .queueType(Property.of(QueueTypes.DURABLE_EXCLUSIVE))
             .build();
 
         try (BufferedReader message = new BufferedReader(new StringReader("""
             {"payload": "test-message"}
             """))) {
-            MessagingService service = MessagingServiceFactory.create(task);
+            MessagingService service = MessagingServiceFactory.create(task, runContext);
             SolacePersistentMessagePublisher publisher = new SolacePersistentMessagePublisher(
                 Topic.of("topic"),
                 Serdes.STRING.create(Collections.emptyMap()),

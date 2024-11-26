@@ -1,12 +1,13 @@
 package io.kestra.plugin.solace;
 
+import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.Task;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @NoArgsConstructor
@@ -14,15 +15,15 @@ import java.util.Map;
 @Getter
 abstract class AbstractSolaceTask extends Task implements SolaceConnectionInterface {
 
-    private String username;
+    private Property<String> username;
 
-    private String password;
-
-    @Builder.Default
-    private String vpn = "default";
-
-    private String host;
+    private Property<String> password;
 
     @Builder.Default
-    private Map<String, String> properties = Collections.emptyMap();
+    private Property<String> vpn = Property.of("default");
+
+    private Property<String> host;
+
+    @Builder.Default
+    private Property<Map<String, String>> properties = Property.of(new HashMap<>());
 }

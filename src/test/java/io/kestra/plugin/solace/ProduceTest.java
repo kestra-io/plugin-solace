@@ -1,10 +1,11 @@
 package io.kestra.plugin.solace;
 
+import io.kestra.core.junit.annotations.KestraTest;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
-import io.kestra.core.junit.annotations.KestraTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,13 +26,13 @@ class ProduceTest extends BaseSolaceIT {
 
         Produce task = Produce.builder()
             .from(Map.of("payload", "msg"))
-            .messageSerializer(Serdes.STRING)
-            .username(solaceContainer.getUsername())
-            .password(solaceContainer.getPassword())
-            .vpn(solaceContainer.getVpn())
-            .host(solaceContainer.getOrigin(Service.SMF))
-            .deliveryMode(DeliveryModes.DIRECT)
-            .topicDestination("topic")
+            .messageSerializer(Property.of(Serdes.STRING))
+            .username(Property.of(solaceContainer.getUsername()))
+            .password(Property.of(solaceContainer.getPassword()))
+            .vpn(Property.of(solaceContainer.getVpn()))
+            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
+            .deliveryMode(Property.of(DeliveryModes.DIRECT))
+            .topicDestination(Property.of("topic"))
             .build();
 
         Produce.Output runOutput = task.run(runContext);
@@ -48,13 +49,13 @@ class ProduceTest extends BaseSolaceIT {
                 Map.of("payload", "msg1"),
                 Map.of("payload", "msg2")
             ))
-            .messageSerializer(Serdes.STRING)
-            .username(solaceContainer.getUsername())
-            .password(solaceContainer.getPassword())
-            .vpn(solaceContainer.getVpn())
-            .host(solaceContainer.getOrigin(Service.SMF))
-            .deliveryMode(DeliveryModes.DIRECT)
-            .topicDestination("topic")
+            .messageSerializer(Property.of(Serdes.STRING))
+            .username(Property.of(solaceContainer.getUsername()))
+            .password(Property.of(solaceContainer.getPassword()))
+            .vpn(Property.of(solaceContainer.getVpn()))
+            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
+            .deliveryMode(Property.of(DeliveryModes.DIRECT))
+            .topicDestination(Property.of("topic"))
             .build();
 
         Produce.Output runOutput = task.run(runContext);

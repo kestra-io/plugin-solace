@@ -6,6 +6,7 @@ import io.kestra.core.models.conditions.ConditionContext;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.executions.ExecutionTrigger;
 import io.kestra.core.models.flows.State;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.models.triggers.AbstractTrigger;
 import io.kestra.core.models.triggers.PollingTriggerInterface;
 import io.kestra.core.models.triggers.TriggerContext;
@@ -21,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 
 import java.time.Duration;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ import java.util.Optional;
                   - id: hello
                     type: io.kestra.plugin.core.log.Log
                     message: Hello there! I received {{ trigger.messagesCount }} from Solace!
-                
+
                 triggers:
                   - id: read_from_solace
                     type: io.kestra.plugin.solace.Trigger
@@ -71,35 +72,35 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
     private Duration interval = Duration.ofSeconds(60);
 
     // TASK'S PROPERTIES
-    private String username;
+    private Property<String> username;
 
-    private String password;
-
-    @Builder.Default
-    private String vpn = "default";
-
-    private String host;
+    private Property<String> password;
 
     @Builder.Default
-    private Map<String, String> properties = Collections.emptyMap();
+    private Property<String> vpn = Property.of("default");
 
-    private String queueName;
-
-    private QueueTypes queueType;
+    private Property<String> host;
 
     @Builder.Default
-    private Serdes messageDeserializer = Serdes.STRING;
+    private Property<Map<String, String>> properties = Property.of(new HashMap<>());
+
+    private Property<String> queueName;
+
+    private Property<QueueTypes> queueType;
 
     @Builder.Default
-    private Map<String, Object> messageDeserializerProperties = Collections.emptyMap();
+    private Property<Serdes> messageDeserializer = Property.of(Serdes.STRING);
 
     @Builder.Default
-    private Integer maxMessages = 100;
+    private Property<Map<String, Object>> messageDeserializerProperties = Property.of(new HashMap<>());
 
     @Builder.Default
-    private Duration maxDuration = Duration.ofSeconds(10);
+    private Property<Integer> maxMessages = Property.of(100);
 
-    private String messageSelector;
+    @Builder.Default
+    private Property<Duration> maxDuration = Property.of(Duration.ofSeconds(10));
+
+    private Property<String> messageSelector;
 
     /**
      * {@inheritDoc}
