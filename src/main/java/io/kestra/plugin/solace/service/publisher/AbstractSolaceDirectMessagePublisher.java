@@ -8,7 +8,6 @@ import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.solace.serde.Serde;
 import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 
 import java.io.BufferedReader;
 import java.time.Duration;

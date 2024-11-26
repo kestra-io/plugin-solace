@@ -6,6 +6,7 @@ import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.Output;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
@@ -18,6 +19,7 @@ import io.kestra.plugin.solace.service.publisher.DeliveryModes;
 import io.kestra.plugin.solace.service.publisher.SolaceDirectMessagePublisher;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,12 +27,11 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import jakarta.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ import java.util.Map;
                   - id: file
                     type: FILE
                     description: a CSV file with columns id, username, tweet, and timestamp
-                
+
                 tasks:
                   - id: read_csv_file
                     type: io.kestra.plugin.serdes.csv.CsvToIon
@@ -70,7 +71,7 @@ import java.util.Map;
                         }
                       };
                       row = result
-                    
+
                   - id: send_message_to_solace
                     type: io.kestra.plugin.solace.Produce
                     from: "{{ outputs.transform_row_to_json.uri }}"
@@ -111,38 +112,33 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
         title = "The topic destination to publish messages."
     )
     @NotNull
-    @PluginProperty(dynamic = true)
-    private String topicDestination;
+    private Property<String> topicDestination;
 
     @Schema(
         title = "The Serializer to be used for serializing messages."
     )
-    @PluginProperty
     @Builder.Default
-    private Serdes messageSerializer = Serdes.STRING;
+    private Property<Serdes> messageSerializer = Property.of(Serdes.STRING);
 
     @Schema(
         title = "The config properties to be passed to the Serializer.",
         description = "Configs in key/value pairs."
     )
-    @PluginProperty
     @Builder.Default
-    protected Map<String, Object> messageSerializerProperties = Collections.emptyMap();
+    protected Property<Map<String, Object>> messageSerializerProperties = Property.of(new HashMap<>());
 
     @Schema(
         title = "The delivery mode to be used for publishing messages messages."
     )
-    @PluginProperty
     @Builder.Default
-    private DeliveryModes deliveryMode = DeliveryModes.PERSISTENT;
+    private Property<DeliveryModes> deliveryMode = Property.of(DeliveryModes.PERSISTENT);
 
     @Schema(
         title = "The maximum time to wait for the message acknowledgement (in milliseconds) when configuring `deliveryMode` to `PERSISTENT`."
     )
     @NotNull
-    @PluginProperty
     @Builder.Default
-    private Duration awaitAcknowledgementTimeout = Duration.ofMinutes(1);
+    private Property<Duration> awaitAcknowledgementTimeout = Property.of(Duration.ofMinutes(1));
 
     @Schema(
         title = "Additional properties to customize all messages to be published.",
@@ -151,9 +147,8 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
             Each key can be customer provided, or it can be a Solace message properties.
             """
     )
-    @PluginProperty
     @Builder.Default
-    protected Map<String, String> messageProperties = Collections.emptyMap();
+    protected Property<Map<String, String>> messageProperties = Property.of(new HashMap<>());
 
     /**
      * {@inheritDoc}
@@ -185,10 +180,11 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
     }
 
     private Output send(final RunContext runContext, final InputStream stream) throws Exception {
-        final Serde serde = getMessageSerializer().create(getMessageSerializerProperties());
+        final Serde serde = runContext.render(getMessageSerializer()).as(Serdes.class).orElseThrow()
+            .create(runContext.render(getMessageSerializerProperties()).asMap(String.class, Object.class));
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            final Topic topic = Topic.of(runContext.render(topicDestination));
-            AbstractSolaceDirectMessagePublisher sender = switch (deliveryMode) {
+            final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
+            AbstractSolaceDirectMessagePublisher sender = switch (runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow()) {
                 case DIRECT -> new SolaceDirectMessagePublisher(
                     topic,
                     serde,
@@ -198,14 +194,14 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
                     topic,
                     serde,
                     runContext.logger(),
-                    awaitAcknowledgementTimeout
+                    runContext.render(awaitAcknowledgementTimeout).as(Duration.class).orElseThrow()
                 );
             };
-            MessagingService service = MessagingServiceFactory.create(render(runContext));
+            MessagingService service = MessagingServiceFactory.create(this, runContext);
             AbstractSolaceDirectMessagePublisher.SendResult result = sender.send(
                 reader,
                 service,
-                messageProperties
+                runContext.render(messageProperties).asMap(String.class, Object.class)
             );
 
             // metrics
