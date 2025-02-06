@@ -26,7 +26,7 @@ sourceCompatibility = 21
 targetCompatibility = 21
 
 group "io.kestra.plugin"
-description 'Plugin template for Kestra'
+description 'Leverage Solace messaging in Kestra data orchestration.'
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
