@@ -103,7 +103,7 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest-library"
     testImplementation "org.testcontainers:testcontainers:1.20.4"
     testImplementation "org.testcontainers:junit-jupiter:1.20.4"
-    testImplementation "org.testcontainers:solace:1.20.4"
+    testImplementation "org.testcontainers:solace:1.20.5"
 }
 
 /**********************************************************************************************************************\
