@@ -59,7 +59,7 @@ import java.util.Optional;
     )
 })
 @Schema(
-    title = "Trigger flow based on messages received from a Solace broker."
+    title = "Trigger flow based on messages received from a Solace broker, creating one execution per batch of messages."
 )
 @SuperBuilder
 @NoArgsConstructor
