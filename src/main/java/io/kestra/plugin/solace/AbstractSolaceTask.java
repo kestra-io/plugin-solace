@@ -20,10 +20,10 @@ abstract class AbstractSolaceTask extends Task implements SolaceConnectionInterf
     private Property<String> password;
 
     @Builder.Default
-    private Property<String> vpn = Property.of("default");
+    private Property<String> vpn = Property.ofValue("default");
 
     private Property<String> host;
 
     @Builder.Default
-    private Property<Map<String, String>> properties = Property.of(new HashMap<>());
+    private Property<Map<String, String>> properties = Property.ofValue(new HashMap<>());
 }

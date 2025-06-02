@@ -38,15 +38,15 @@ class ConsumeTest extends BaseSolaceIT {
         createQueueWithSubscriptionTopic(TEST_QUEUE, "topic");
 
         Consume task = Consume.builder()
-            .messageDeserializer(Property.of(Serdes.STRING))
-            .username(Property.of(SOLACE_USER))
-            .password(Property.of(SOLACE_PASSWORD))
-            .vpn(Property.of(SOLACE_VPN))
-            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
-            .maxDuration(Property.of(Duration.ofSeconds(5)))
-            .maxMessages(Property.of(1))
-            .queueName(Property.of(TEST_QUEUE))
-            .queueType(Property.of(QueueTypes.DURABLE_EXCLUSIVE))
+            .messageDeserializer(Property.ofValue(Serdes.STRING))
+            .username(Property.ofValue(SOLACE_USER))
+            .password(Property.ofValue(SOLACE_PASSWORD))
+            .vpn(Property.ofValue(SOLACE_VPN))
+            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .maxDuration(Property.ofValue(Duration.ofSeconds(5)))
+            .maxMessages(Property.ofValue(1))
+            .queueName(Property.ofValue(TEST_QUEUE))
+            .queueType(Property.ofValue(QueueTypes.DURABLE_EXCLUSIVE))
             .build();
 
         try (BufferedReader message = new BufferedReader(new StringReader("""

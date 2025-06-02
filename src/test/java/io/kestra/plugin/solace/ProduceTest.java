@@ -26,13 +26,13 @@ class ProduceTest extends BaseSolaceIT {
 
         Produce task = Produce.builder()
             .from(Map.of("payload", "msg"))
-            .messageSerializer(Property.of(Serdes.STRING))
-            .username(Property.of(solaceContainer.getUsername()))
-            .password(Property.of(solaceContainer.getPassword()))
-            .vpn(Property.of(solaceContainer.getVpn()))
-            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
-            .deliveryMode(Property.of(DeliveryModes.DIRECT))
-            .topicDestination(Property.of("topic"))
+            .messageSerializer(Property.ofValue(Serdes.STRING))
+            .username(Property.ofValue(solaceContainer.getUsername()))
+            .password(Property.ofValue(solaceContainer.getPassword()))
+            .vpn(Property.ofValue(solaceContainer.getVpn()))
+            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .deliveryMode(Property.ofValue(DeliveryModes.DIRECT))
+            .topicDestination(Property.ofValue("topic"))
             .build();
 
         Produce.Output runOutput = task.run(runContext);
@@ -49,13 +49,13 @@ class ProduceTest extends BaseSolaceIT {
                 Map.of("payload", "msg1"),
                 Map.of("payload", "msg2")
             ))
-            .messageSerializer(Property.of(Serdes.STRING))
-            .username(Property.of(solaceContainer.getUsername()))
-            .password(Property.of(solaceContainer.getPassword()))
-            .vpn(Property.of(solaceContainer.getVpn()))
-            .host(Property.of(solaceContainer.getOrigin(Service.SMF)))
-            .deliveryMode(Property.of(DeliveryModes.DIRECT))
-            .topicDestination(Property.of("topic"))
+            .messageSerializer(Property.ofValue(Serdes.STRING))
+            .username(Property.ofValue(solaceContainer.getUsername()))
+            .password(Property.ofValue(solaceContainer.getPassword()))
+            .vpn(Property.ofValue(solaceContainer.getVpn()))
+            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .deliveryMode(Property.ofValue(DeliveryModes.DIRECT))
+            .topicDestination(Property.ofValue("topic"))
             .build();
 
         Produce.Output runOutput = task.run(runContext);

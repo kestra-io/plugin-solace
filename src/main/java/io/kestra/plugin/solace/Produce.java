@@ -118,27 +118,27 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
         title = "The Serializer to be used for serializing messages."
     )
     @Builder.Default
-    private Property<Serdes> messageSerializer = Property.of(Serdes.STRING);
+    private Property<Serdes> messageSerializer = Property.ofValue(Serdes.STRING);
 
     @Schema(
         title = "The config properties to be passed to the Serializer.",
         description = "Configs in key/value pairs."
     )
     @Builder.Default
-    protected Property<Map<String, Object>> messageSerializerProperties = Property.of(new HashMap<>());
+    protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
     @Schema(
         title = "The delivery mode to be used for publishing messages messages."
     )
     @Builder.Default
-    private Property<DeliveryModes> deliveryMode = Property.of(DeliveryModes.PERSISTENT);
+    private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
 
     @Schema(
         title = "The maximum time to wait for the message acknowledgement (in milliseconds) when configuring `deliveryMode` to `PERSISTENT`."
     )
     @NotNull
     @Builder.Default
-    private Property<Duration> awaitAcknowledgementTimeout = Property.of(Duration.ofMinutes(1));
+    private Property<Duration> awaitAcknowledgementTimeout = Property.ofValue(Duration.ofMinutes(1));
 
     @Schema(
         title = "Additional properties to customize all messages to be published.",
@@ -148,7 +148,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
             """
     )
     @Builder.Default
-    protected Property<Map<String, String>> messageProperties = Property.of(new HashMap<>());
+    protected Property<Map<String, String>> messageProperties = Property.ofValue(new HashMap<>());
 
     /**
      * {@inheritDoc}
