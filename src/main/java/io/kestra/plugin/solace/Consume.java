@@ -75,16 +75,16 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
     private Property<QueueTypes> queueType;
 
     @Builder.Default
-    private Property<Serdes> messageDeserializer = Property.of(Serdes.STRING);
+    private Property<Serdes> messageDeserializer = Property.ofValue(Serdes.STRING);
 
     @Builder.Default
-    private Property<Map<String, Object>> messageDeserializerProperties = Property.of(new HashMap<>());
+    private Property<Map<String, Object>> messageDeserializerProperties = Property.ofValue(new HashMap<>());
 
     @Builder.Default
-    private Property<Integer> maxMessages = Property.of(100);
+    private Property<Integer> maxMessages = Property.ofValue(100);
 
     @Builder.Default
-    private Property<Duration> maxDuration = Property.of(Duration.ofSeconds(10));
+    private Property<Duration> maxDuration = Property.ofValue(Duration.ofSeconds(10));
 
     private Property<String> messageSelector;
 

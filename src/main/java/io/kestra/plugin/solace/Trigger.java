@@ -77,28 +77,28 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
     private Property<String> password;
 
     @Builder.Default
-    private Property<String> vpn = Property.of("default");
+    private Property<String> vpn = Property.ofValue("default");
 
     private Property<String> host;
 
     @Builder.Default
-    private Property<Map<String, String>> properties = Property.of(new HashMap<>());
+    private Property<Map<String, String>> properties = Property.ofValue(new HashMap<>());
 
     private Property<String> queueName;
 
     private Property<QueueTypes> queueType;
 
     @Builder.Default
-    private Property<Serdes> messageDeserializer = Property.of(Serdes.STRING);
+    private Property<Serdes> messageDeserializer = Property.ofValue(Serdes.STRING);
 
     @Builder.Default
-    private Property<Map<String, Object>> messageDeserializerProperties = Property.of(new HashMap<>());
+    private Property<Map<String, Object>> messageDeserializerProperties = Property.ofValue(new HashMap<>());
 
     @Builder.Default
-    private Property<Integer> maxMessages = Property.of(100);
+    private Property<Integer> maxMessages = Property.ofValue(100);
 
     @Builder.Default
-    private Property<Duration> maxDuration = Property.of(Duration.ofSeconds(10));
+    private Property<Duration> maxDuration = Property.ofValue(Duration.ofSeconds(10));
 
     private Property<String> messageSelector;
 
