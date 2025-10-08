@@ -3,6 +3,7 @@ package io.kestra.plugin.solace;
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.resources.Topic;
 import io.kestra.core.models.annotations.Example;
+import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
@@ -38,53 +39,59 @@ import java.util.Map;
 /**
  * The {@link RunnableTask} can be used for producing messages to a Solace Broker.
  */
-@Plugin(examples = {
-    @Example(
-        title = "Publish a file as messages into a Solace Broker.",
-        full = true,
-        code = {
-            """
-                id: send_messages_to_solace_queue
-                namespace: company.team
-
-                inputs:
-                  - id: file
-                    type: FILE
-                    description: a CSV file with columns id, username, tweet, and timestamp
-
-                tasks:
-                  - id: read_csv_file
-                    type: io.kestra.plugin.serdes.csv.CsvToIon
-                    from: "{{ inputs.file }}"
-
-                  - id: transform_row_to_json
-                    type: io.kestra.plugin.scripts.nashorn.FileTransform
-                    from: "{{ outputs.read_csv_file.uri }}"
-                    script: |
-                      var result = {
-                        "payload": {
-                          "username": row.username,
-                          "tweet": row.tweet
-                        },
-                        "properties": {
-                            "correlationId": "42"
-                        }
-                      };
-                      row = result
-
-                  - id: send_message_to_solace
-                    type: io.kestra.plugin.solace.Produce
-                    from: "{{ outputs.transform_row_to_json.uri }}"
-                    topicDestination: test/tweets
-                    host: localhost:55555
-                    username: admin
-                    password: admin
-                    vpn: default
-                    messageSerializer: "JSON"
+@Plugin(
+    examples = {
+        @Example(
+            title = "Publish a file as messages into a Solace Broker.",
+            full = true,
+            code = {
                 """
-        }
-    )
-})
+                    id: send_messages_to_solace_queue
+                    namespace: company.team
+
+                    inputs:
+                      - id: file
+                        type: FILE
+                        description: a CSV file with columns id, username, tweet, and timestamp
+
+                    tasks:
+                      - id: read_csv_file
+                        type: io.kestra.plugin.serdes.csv.CsvToIon
+                        from: "{{ inputs.file }}"
+
+                      - id: transform_row_to_json
+                        type: io.kestra.plugin.scripts.nashorn.FileTransform
+                        from: "{{ outputs.read_csv_file.uri }}"
+                        script: |
+                          var result = {
+                            "payload": {
+                              "username": row.username,
+                              "tweet": row.tweet
+                            },
+                            "properties": {
+                                "correlationId": "42"
+                            }
+                          };
+                          row = result
+
+                      - id: send_message_to_solace
+                        type: io.kestra.plugin.solace.Produce
+                        from: "{{ outputs.transform_row_to_json.uri }}"
+                        topicDestination: test/tweets
+                        host: localhost:55555
+                        username: admin
+                        password: admin
+                        vpn: default
+                        messageSerializer: "JSON"
+                    """
+            }
+        )
+    },
+    metrics = {
+        @Metric(name = "messages", description = "Number of messages", type = Counter.TYPE),
+    }
+
+)
 @Schema(
     title = "Publish messages to a Solace Broker."
 )
@@ -93,10 +100,6 @@ import java.util.Map;
 @NoArgsConstructor
 @Getter
 public class Produce extends AbstractSolaceTask implements RunnableTask<Output> {
-
-    // TASK'S METRICS
-    private static final String METRIC_PUBLISHED_MESSAGES_NAME = "total-published-messages";
-
     // TASK'S PROPERTIES
     @Schema(
         title = "The content of the message to be published to Solace",
@@ -205,7 +208,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
             );
 
             // metrics
-            runContext.metric(Counter.of(METRIC_PUBLISHED_MESSAGES_NAME, result.totalSentMessages()));
+            runContext.metric(Counter.of("messages", result.totalSentMessages()));
 
             return new Output(result.totalSentMessages());
         }
