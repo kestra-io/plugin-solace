@@ -88,9 +88,8 @@ import java.util.Map;
         )
     },
     metrics = {
-        @Metric(name = "messages", description = "Number of messages", type = Counter.TYPE),
+        @Metric(name = "records", description = "Number of records produced", type = Counter.TYPE)
     }
-
 )
 @Schema(
     title = "Publish messages to a Solace Broker."
@@ -208,7 +207,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
             );
 
             // metrics
-            runContext.metric(Counter.of("messages", result.totalSentMessages()));
+            runContext.metric(Counter.of("records", result.totalSentMessages()));
 
             return new Output(result.totalSentMessages());
         }
