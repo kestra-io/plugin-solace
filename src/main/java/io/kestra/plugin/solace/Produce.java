@@ -8,9 +8,9 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
-import io.kestra.core.models.tasks.Output;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
+import io.kestra.core.models.tasks.From;
 import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.data.InputStreamProvider;
 import io.kestra.plugin.solace.serde.Serde;
@@ -99,17 +99,17 @@ import java.util.Map;
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class Produce extends AbstractSolaceTask implements RunnableTask<Output> {
+public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output> {
+
     // TASK'S PROPERTIES
     @Schema(
         title = "The content of the message to be published to Solace",
         description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps. " +
-            "The following keys are supported: `payload`, `properties`.",
-        anyOf = {String.class, List.class, Map.class}
+            "The following keys are supported: `payload`, `properties`."
     )
     @NotNull
     @PluginProperty(dynamic = true)
-    private Object from;
+    private From from;
 
     @Schema(
         title = "The topic destination to publish messages."
@@ -160,22 +160,11 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
     public Output run(RunContext runContext) throws Exception {
         final InputStreamProvider provider = new InputStreamProvider(runContext);
 
-        InputStream is = null;
-        if (this.getFrom() instanceof String uri) {
-            is = provider.get(runContext.render(uri));
-        }
-
-        if (this.getFrom() instanceof Map data) {
-            is = provider.get(data);
-        }
-
-        if (this.getFrom() instanceof List data) {
-            is = provider.get(data);
-        }
+        InputStream is = from.toInputStream(runContext, provider);
 
         if (is == null) {
             throw new IllegalArgumentException(
-                "Unsupported type for task-property `from`: " + this.getFrom().getClass().getSimpleName()
+                "Unsupported type for task-property `from`"
             );
         }
 
@@ -223,3 +212,4 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Output> 
         private final Integer messagesCount;
     }
 }
+
