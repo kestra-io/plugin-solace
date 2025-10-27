@@ -8,9 +8,9 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
+import io.kestra.core.models.property.Data;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
-import io.kestra.core.models.tasks.From;
 import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.data.InputStreamProvider;
 import io.kestra.plugin.solace.serde.Serde;
@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -90,7 +89,6 @@ import java.util.Map;
     metrics = {
         @Metric(name = "messages", description = "Number of messages", type = Counter.TYPE),
     }
-
 )
 @Schema(
     title = "Publish messages to a Solace Broker."
@@ -99,7 +97,7 @@ import java.util.Map;
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output> {
+public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output>, Data.From {
 
     // TASK'S PROPERTIES
     @Schema(
@@ -109,7 +107,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     )
     @NotNull
     @PluginProperty(dynamic = true)
-    private From from;
+    private Object from;
 
     @Schema(
         title = "The topic destination to publish messages."
@@ -131,13 +129,14 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
     @Schema(
-        title = "The delivery mode to be used for publishing messages messages."
+        title = "The delivery mode to be used for publishing messages."
     )
     @Builder.Default
     private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
 
     @Schema(
-        title = "The maximum time to wait for the message acknowledgement (in milliseconds) when configuring `deliveryMode` to `PERSISTENT`."
+        title = "The maximum time to wait for the message acknowledgement (in milliseconds) " +
+            "when configuring `deliveryMode` to `PERSISTENT`."
     )
     @NotNull
     @Builder.Default
@@ -147,7 +146,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
         title = "Additional properties to customize all messages to be published.",
         description = """
             Additional properties must be provided with Key of type String and Value of type String.
-            Each key can be customer provided, or it can be a Solace message properties.
+            Each key can be customer provided, or it can be a Solace message property.
             """
     )
     @Builder.Default
@@ -161,27 +160,24 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
         final InputStreamProvider provider = new InputStreamProvider(runContext);
 
         InputStream is = from.toInputStream(runContext, provider);
-
         if (is == null) {
-            throw new IllegalArgumentException(
-                "Unsupported type for task-property `from`"
-            );
+            throw new IllegalArgumentException("Unsupported type for task-property `from`");
         }
 
         return send(runContext, is);
     }
 
     private Output send(final RunContext runContext, final InputStream stream) throws Exception {
-        final Serde serde = runContext.render(getMessageSerializer()).as(Serdes.class).orElseThrow()
+        final Serde serde = runContext.render(getMessageSerializer())
+            .as(Serdes.class)
+            .orElseThrow()
             .create(runContext.render(getMessageSerializerProperties()).asMap(String.class, Object.class));
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
+
             AbstractSolaceDirectMessagePublisher sender = switch (runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow()) {
-                case DIRECT -> new SolaceDirectMessagePublisher(
-                    topic,
-                    serde,
-                    runContext.logger()
-                );
+                case DIRECT -> new SolaceDirectMessagePublisher(topic, serde, runContext.logger());
                 case PERSISTENT -> new SolacePersistentMessagePublisher(
                     topic,
                     serde,
@@ -189,6 +185,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
                     runContext.render(awaitAcknowledgementTimeout).as(Duration.class).orElseThrow()
                 );
             };
+
             MessagingService service = MessagingServiceFactory.create(this, runContext);
             AbstractSolaceDirectMessagePublisher.SendResult result = sender.send(
                 reader,
@@ -206,10 +203,9 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @AllArgsConstructor
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(
-            title = "Total number of messages published by the task."
-        )
+        @Schema(title = "Total number of messages published by the task.")
         private final Integer messagesCount;
     }
 }
+
 
