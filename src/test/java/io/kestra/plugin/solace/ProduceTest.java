@@ -22,7 +22,8 @@ class ProduceTest extends BaseSolaceIT {
     @Test
     void testGivenFromMap() throws Exception {
         RunContext runContext = runContextFactory.of();
-
+        title = io.kestra.core.models.property.Data.From.TITLE,
+            description = io.kestra.core.models.property.Data.From.DESCRIPTION,
         Produce task = Produce.builder()
             .from(Map.of("payload", "msg"))
             .messageSerializer(Property.ofValue(Serdes.STRING))
