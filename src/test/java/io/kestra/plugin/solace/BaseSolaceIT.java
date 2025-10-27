@@ -12,6 +12,8 @@ import org.testcontainers.utility.DockerImageName;
 import java.io.IOException;
 import java.time.Duration;
 
+import com.github.dockerjava.api.model.Capability;
+
 @Testcontainers
 public class BaseSolaceIT {
 
@@ -29,61 +31,40 @@ public class BaseSolaceIT {
         .withEnv("username_" + SOLACE_USER + "_globalaccesslevel", "user")
         .withEnv("username_" + SOLACE_USER + "_password", SOLACE_PASSWORD)
         .withEnv("system_scaling_maxconnectioncount", "100")
-        .withSharedMemorySize(1_000_000_000L)
-        .withExposedPorts(55555, 8080, 1883, 8008, 9000)
-        .withLogConsumer(new Slf4jLogConsumer(LOG))
-        .waitingFor(
-            Wait.forHttp("/SEMP/v2/config/about")
-                .forStatusCode(200)
-                .forPort(8080)
-                .withStartupTimeout(Duration.ofMinutes(3))
+        .withExposedPorts(55555, 8080)
+        .withSharedMemorySize(2L * 1024 * 1024 * 1024) // 2GB
+        .withCreateContainerCmdModifier(cmd ->
+            cmd.getHostConfig().withCapAdd((Capability.IPC_LOCK))
         )
         .waitingFor(
-            Wait.forListeningPort()
-                .withStartupTimeout(Duration.ofMinutes(3))
-        );
-    
-    protected String getUsername() {
-        return SOLACE_USER;
-    }
-
-    protected String getPassword() {
-        return SOLACE_PASSWORD;
-    }
-
-    protected String getVpn() {
-        return SOLACE_VPN;
-    }
+            Wait.forLogMessage(".*Message router started.*", 1)
+                .withStartupTimeout(Duration.ofMinutes(5))
+        )
+        .withLogConsumer(new Slf4jLogConsumer(LOG));
 
     protected String getOrigin(Object service) {
         return solaceContainer.getHost() + ":" + solaceContainer.getMappedPort(55555);
     }
 
-    protected String getSmfUrl() {
-        return solaceContainer.getHost() + ":" + solaceContainer.getMappedPort(55555);
-    }
+    protected void createQueueWithSubscriptionTopic(String queueName, String subscriptionTopic) {
+        String sempUrl = "http://" + solaceContainer.getHost() + ":" +
+            solaceContainer.getMappedPort(8080) + "/SEMP/v2/config/msgVpns/" + SOLACE_VPN;
 
-    protected void createQueueWithSubscriptionTopic(String queueName,
-                                                    String subscriptionTopic) {
-        String sempUrl = "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN;
-
-        executeCommand("curl",
+        executeCommand("curl", "-s",
             sempUrl + "/topicEndpoints",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"topicEndpointName\":\"" + subscriptionTopic + "\",\"accessType\":\"exclusive\",\"permission\":\"modify-topic\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
-
-        executeCommand("curl",
+        executeCommand("curl", "-s",
             sempUrl + "/queues",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"queueName\":\"" + queueName + "\",\"accessType\":\"exclusive\",\"maxMsgSpoolUsage\":200,\"permission\":\"consume\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
-
-        executeCommand("curl",
+        executeCommand("curl", "-s",
             sempUrl + "/queues/" + queueName + "/subscriptions",
             "-X", "POST",
             "-u", "admin:admin",
@@ -94,7 +75,7 @@ public class BaseSolaceIT {
 
     protected void executeCommand(String... command) {
         try {
-            org.testcontainers.containers.Container.ExecResult execResult = solaceContainer.execInContainer(command);
+            var execResult = solaceContainer.execInContainer(command);
             if (execResult.getExitCode() != 0) {
                 logCommandError(execResult.getStderr(), command);
             } else {
