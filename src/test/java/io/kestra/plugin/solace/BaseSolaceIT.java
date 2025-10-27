@@ -29,6 +29,7 @@ public class BaseSolaceIT {
         .withEnv("username_" + SOLACE_USER + "_globalaccesslevel", "user")
         .withEnv("username_" + SOLACE_USER + "_password", SOLACE_PASSWORD)
         .withEnv("system_scaling_maxconnectioncount", "100")
+        .withSharedMemorySize(1_000_000_000L)
         .withExposedPorts(55555, 8080, 1883, 8008, 9000)
         .withExposedPorts(55555, 55555)
         .withLogConsumer(new Slf4jLogConsumer(LOG))
