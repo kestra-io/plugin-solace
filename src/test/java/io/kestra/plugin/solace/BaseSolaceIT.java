@@ -57,9 +57,7 @@ public class BaseSolaceIT {
 
     protected void createQueueWithSubscriptionTopic(String queueName,
                                                     String subscriptionTopic) {
-        String sempUrl = "http://" + solaceContainer.getHost() + ":" + solaceContainer.getMappedPort(8080)
-            + "/SEMP/v2/config/msgVpns/" + SOLACE_VPN;
-
+        String sempUrl = "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN;
 
         executeCommand("curl",
             sempUrl + "/topicEndpoints",
