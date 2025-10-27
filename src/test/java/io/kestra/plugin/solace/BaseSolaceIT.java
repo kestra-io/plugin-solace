@@ -2,13 +2,15 @@ package io.kestra.plugin.solace;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.solace.Service;
-import org.testcontainers.solace.SolaceContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Testcontainers
 public class BaseSolaceIT {
@@ -20,15 +22,34 @@ public class BaseSolaceIT {
     static final String SOLACE_VPN = "default";
 
     @Container
-    SolaceContainer solaceContainer = new SolaceContainer("solace/solace-pubsub-standard:10.2") {
-        {
-            addFixedExposedPort(55555, 55555);
-        }
-    }
-        .withCredentials(SOLACE_USER, SOLACE_PASSWORD)
-        .withTopic("topic", Service.SMF)
+    GenericContainer<?> solaceContainer = new GenericContainer<>(
+        DockerImageName.parse("solace/solace-pubsub-standard:10.2"))
+        .withEnv("username_admin_globalaccesslevel", "admin")
+        .withEnv("username_admin_password", "admin")
+        .withEnv("username_" + SOLACE_USER + "_globalaccesslevel", "user")
+        .withEnv("username_" + SOLACE_USER + "_password", SOLACE_PASSWORD)
+        .withEnv("system_scaling_maxconnectioncount", "100")
+        .withExposedPorts(55555, 8080, 1883, 8008, 9000)
+        .withExposedPorts(55555, 55555)
         .withLogConsumer(new Slf4jLogConsumer(LOG))
-        .withVpn(SOLACE_VPN);
+        .waitingFor(Wait.forLogMessage(".*Running pre-startup checks.*", 1)
+            .withStartupTimeout(Duration.ofMinutes(2)));
+
+    protected String getUsername() {
+        return SOLACE_USER;
+    }
+
+    protected String getPassword() {
+        return SOLACE_PASSWORD;
+    }
+
+    protected String getVpn() {
+        return SOLACE_VPN;
+    }
+
+    protected String getOrigin(Object service) {
+        return solaceContainer.getHost() + ":" + solaceContainer.getMappedPort(55555);
+    }
 
     protected void createQueueWithSubscriptionTopic(String queueName,
                                                     String subscriptionTopic) {
@@ -70,5 +91,9 @@ public class BaseSolaceIT {
 
     protected void logCommandError(String error, String... command) {
         LOG.error("Could not execute command {}: {}", command, error);
+    }
+
+    public enum Service {
+        SMF
     }
 }

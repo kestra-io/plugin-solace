@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.solace.Service;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -42,7 +41,7 @@ class ConsumeTest extends BaseSolaceIT {
             .username(Property.ofValue(SOLACE_USER))
             .password(Property.ofValue(SOLACE_PASSWORD))
             .vpn(Property.ofValue(SOLACE_VPN))
-            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .host(Property.ofValue(getOrigin(Service.SMF)))
             .maxDuration(Property.ofValue(Duration.ofSeconds(5)))
             .maxMessages(Property.ofValue(1))
             .queueName(Property.ofValue(TEST_QUEUE))

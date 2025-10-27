@@ -9,7 +9,6 @@ import io.kestra.plugin.solace.service.publisher.DeliveryModes;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.solace.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,10 @@ class ProduceTest extends BaseSolaceIT {
         Produce task = Produce.builder()
             .from(Map.of("payload", "msg"))
             .messageSerializer(Property.ofValue(Serdes.STRING))
-            .username(Property.ofValue(solaceContainer.getUsername()))
-            .password(Property.ofValue(solaceContainer.getPassword()))
-            .vpn(Property.ofValue(solaceContainer.getVpn()))
-            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .username(Property.ofValue(getUsername()))
+            .password(Property.ofValue(getPassword()))
+            .vpn(Property.ofValue(getVpn()))
+            .host(Property.ofValue(getOrigin(Service.SMF)))
             .deliveryMode(Property.ofValue(DeliveryModes.DIRECT))
             .topicDestination(Property.ofValue("topic"))
             .build();
@@ -50,10 +49,10 @@ class ProduceTest extends BaseSolaceIT {
                 Map.of("payload", "msg2")
             ))
             .messageSerializer(Property.ofValue(Serdes.STRING))
-            .username(Property.ofValue(solaceContainer.getUsername()))
-            .password(Property.ofValue(solaceContainer.getPassword()))
-            .vpn(Property.ofValue(solaceContainer.getVpn()))
-            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .username(Property.ofValue(getUsername()))
+            .password(Property.ofValue(getPassword()))
+            .vpn(Property.ofValue(getVpn()))
+            .host(Property.ofValue(getOrigin(Service.SMF)))
             .deliveryMode(Property.ofValue(DeliveryModes.DIRECT))
             .topicDestination(Property.ofValue("topic"))
             .build();
