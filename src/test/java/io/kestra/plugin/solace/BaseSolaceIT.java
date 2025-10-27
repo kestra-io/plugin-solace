@@ -32,9 +32,17 @@ public class BaseSolaceIT {
         .withSharedMemorySize(1_000_000_000L)
         .withExposedPorts(55555, 8080, 1883, 8008, 9000)
         .withLogConsumer(new Slf4jLogConsumer(LOG))
-        .waitingFor(Wait.forLogMessage(".*Running pre-startup checks.*", 1)
-            .withStartupTimeout(Duration.ofMinutes(2)));
-
+        .waitingFor(
+            Wait.forHttp("/SEMP/v2/config/about")
+                .forStatusCode(200)
+                .forPort(8080)
+                .withStartupTimeout(Duration.ofMinutes(3))
+        )
+        .waitingFor(
+            Wait.forListeningPort()
+                .withStartupTimeout(Duration.ofMinutes(3))
+        );
+    
     protected String getUsername() {
         return SOLACE_USER;
     }
