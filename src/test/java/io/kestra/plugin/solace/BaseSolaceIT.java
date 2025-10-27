@@ -54,22 +54,24 @@ public class BaseSolaceIT {
 
     protected void createQueueWithSubscriptionTopic(String queueName,
                                                     String subscriptionTopic) {
+        String sempUrl = "http://" + solaceContainer.getHost() + ":" + solaceContainer.getMappedPort(8080);
+
         executeCommand("curl",
-            "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/topicEndpoints",
+            sempUrl + SOLACE_VPN + "/topicEndpoints",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"topicEndpointName\":\"" + subscriptionTopic + "\",\"accessType\":\"exclusive\",\"permission\":\"modify-topic\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
         executeCommand("curl",
-            "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/queues",
+            sempUrl + SOLACE_VPN + "/queues",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"queueName\":\"" + queueName + "\",\"accessType\":\"exclusive\",\"maxMsgSpoolUsage\":200,\"permission\":\"consume\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
         executeCommand("curl",
-            "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/queues/" + queueName + "/subscriptions",
+            sempUrl + SOLACE_VPN + "/queues/" + queueName + "/subscriptions",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
