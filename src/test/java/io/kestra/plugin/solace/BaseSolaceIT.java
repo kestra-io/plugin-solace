@@ -37,8 +37,8 @@ public class BaseSolaceIT {
             cmd.getHostConfig().withCapAdd((Capability.IPC_LOCK))
         )
         .waitingFor(
-            Wait.forLogMessage(".*Message router started.*", 1)
-                .withStartupTimeout(Duration.ofMinutes(5))
+            Wait.forLogMessage(".*Running pre-startup checks.*", 1)
+                .withStartupTimeout(Duration.ofMinutes(10))
         )
         .withLogConsumer(new Slf4jLogConsumer(LOG));
 
