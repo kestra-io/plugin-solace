@@ -100,8 +100,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
 
     @Schema(
         title = "The content of the message to be published to Solace",
-        description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps. " +
-            "The following keys are supported: `payload`, `properties`."
+        description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps."
     )
     @NotNull
     @PluginProperty(dynamic = true)
@@ -140,7 +139,6 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     public Output run(RunContext runContext) throws Exception {
         final InputStreamProvider provider = new InputStreamProvider(runContext);
 
-        // ✅ Fixed: handle all types of `from` dynamically
         InputStream is;
         if (from instanceof String s) {
             is = provider.get(s);
