@@ -8,7 +8,6 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
-import io.kestra.core.models.property.Data;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
 import io.kestra.plugin.solace.client.MessagingServiceFactory;
@@ -29,10 +28,12 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -90,16 +91,13 @@ import java.util.Map;
         @Metric(name = "messages", description = "Number of messages", type = Counter.TYPE),
     }
 )
-@Schema(
-    title = "Publish messages to a Solace Broker."
-)
+@Schema(title = "Publish messages to a Solace Broker.")
 @Slf4j
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output>, Data.From {
+public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output> {
 
-    // TASK'S PROPERTIES
     @Schema(
         title = "The content of the message to be published to Solace",
         description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps. " +
@@ -109,58 +107,48 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @PluginProperty(dynamic = true)
     private Object from;
 
-    @Schema(
-        title = "The topic destination to publish messages."
-    )
+    @Schema(title = "The topic destination to publish messages.")
     @NotNull
     private Property<String> topicDestination;
 
-    @Schema(
-        title = "The Serializer to be used for serializing messages."
-    )
+    @Schema(title = "The Serializer to be used for serializing messages.")
     @Builder.Default
     private Property<Serdes> messageSerializer = Property.ofValue(Serdes.STRING);
 
-    @Schema(
-        title = "The config properties to be passed to the Serializer.",
-        description = "Configs in key/value pairs."
-    )
+    @Schema(title = "The config properties to be passed to the Serializer.", description = "Configs in key/value pairs.")
     @Builder.Default
     protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
-    @Schema(
-        title = "The delivery mode to be used for publishing messages."
-    )
+    @Schema(title = "The delivery mode to be used for publishing messages.")
     @Builder.Default
     private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
 
-    @Schema(
-        title = "The maximum time to wait for the message acknowledgement (in milliseconds) " +
-            "when configuring `deliveryMode` to `PERSISTENT`."
-    )
+    @Schema(title = "The maximum time to wait for the message acknowledgement (in milliseconds) when deliveryMode is PERSISTENT.")
     @NotNull
     @Builder.Default
     private Property<Duration> awaitAcknowledgementTimeout = Property.ofValue(Duration.ofMinutes(1));
 
-    @Schema(
-        title = "Additional properties to customize all messages to be published.",
-        description = """
-            Additional properties must be provided with Key of type String and Value of type String.
-            Each key can be customer provided, or it can be a Solace message property.
-            """
+    @Schema(title = "Additional properties to customize all messages to be published.", description = """
+        Additional properties must be provided with Key of type String and Value of type String.
+        Each key can be customer provided, or it can be a Solace message property.
+        """
     )
     @Builder.Default
     protected Property<Map<String, String>> messageProperties = Property.ofValue(new HashMap<>());
 
-    /**
-     * {@inheritDoc}
-     **/
     @Override
     public Output run(RunContext runContext) throws Exception {
         final InputStreamProvider provider = new InputStreamProvider(runContext);
 
-        InputStream is = from.toInputStream(runContext, provider);
-        if (is == null) {
+        // ✅ Fixed: handle all types of `from` dynamically
+        InputStream is;
+        if (from instanceof String s) {
+            is = provider.get(s);
+        } else if (from instanceof Map<?, ?> m) {
+            is = provider.get((Map<String, Object>) m);
+        } else if (from instanceof List<?> l) {
+            is = provider.get((List<Object>) l);
+        } else {
             throw new IllegalArgumentException("Unsupported type for task-property `from`");
         }
 
@@ -193,7 +181,6 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
                 runContext.render(messageProperties).asMap(String.class, Object.class)
             );
 
-            // metrics
             runContext.metric(Counter.of("messages", result.totalSentMessages()));
 
             return new Output(result.totalSentMessages());
@@ -207,5 +194,3 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
         private final Integer messagesCount;
     }
 }
-
-
