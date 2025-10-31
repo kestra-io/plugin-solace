@@ -102,7 +102,6 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
         title = "The content of the message to be published to Solace",
         description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps.")
     @NotNull
-    @PluginProperty(dynamic = true)
     private Object from;
 
     @Schema(title = "The topic destination to publish messages.")
