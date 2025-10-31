@@ -9,9 +9,7 @@ import io.kestra.core.queues.QueueInterface;
 import io.kestra.core.repositories.LocalFlowRepositoryLoader;
 import io.kestra.core.runners.FlowListeners;
 import io.kestra.core.runners.RunContextFactory;
-import io.kestra.core.runners.Worker;
 import io.kestra.scheduler.AbstractScheduler;
-import io.kestra.core.utils.IdUtils;
 import io.kestra.core.utils.TestsUtils;
 import io.kestra.jdbc.runner.JdbcScheduler;
 import io.kestra.worker.DefaultWorker;
@@ -19,7 +17,6 @@ import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.solace.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -81,7 +78,7 @@ class TriggerTest extends BaseSolaceIT {
                 .username(Property.ofValue(SOLACE_USER))
                 .password(Property.ofValue(SOLACE_PASSWORD))
                 .vpn(Property.ofValue(SOLACE_VPN))
-                .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+                .host(Property.ofValue(getOrigin(Service.SMF)))
                 .topicDestination(Property.ofValue("topic"))
                 .from(List.of(
                     ImmutableMap.builder()
