@@ -5,8 +5,8 @@ import com.solace.messaging.resources.Topic;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
-import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
+import io.kestra.core.models.property.Data;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
@@ -28,13 +28,13 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import static io.kestra.core.utils.Rethrow.throwFunction;
 
 /**
  * The {@link RunnableTask} can be used for producing messages to a Solace Broker.
@@ -96,7 +96,7 @@ import java.util.Map;
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output> {
+public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output>, Data.From {
 
     @Schema(
         title = "The content of the message to be published to Solace",
@@ -136,19 +136,23 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @Override
     public Output run(RunContext runContext) throws Exception {
         final InputStreamProvider provider = new InputStreamProvider(runContext);
+        
+        int messageCount = Data.from(from).read(runContext)
+            .map(throwFunction(row -> {
+                InputStream is;
+                if (row instanceof String s) {
+                    is = provider.get(s);
+                } else if (row instanceof Map<?, ?> m) {
+                    is = provider.get((Map<String, Object>) m);
+                } else {
+                    throw new IllegalArgumentException("Unsupported type for task-property `from`");
+                }
+                return send(runContext, is).getMessagesCount();
+            }))
+            .reduce(Integer::sum)
+            .blockOptional().orElse(0);
 
-        InputStream is;
-        if (from instanceof String s) {
-            is = provider.get(s);
-        } else if (from instanceof Map<?, ?> m) {
-            is = provider.get((Map<String, Object>) m);
-        } else if (from instanceof List<?> l) {
-            is = provider.get((List<Object>) l);
-        } else {
-            throw new IllegalArgumentException("Unsupported type for task-property `from`");
-        }
-
-        return send(runContext, is);
+        return new Output(messageCount);
     }
 
     private Output send(final RunContext runContext, final InputStream stream) throws Exception {
