@@ -26,7 +26,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -95,7 +94,6 @@ import java.util.Map;
 @Schema(
     title = "Publish messages to a Solace Broker."
 )
-@Slf4j
 @SuperBuilder
 @NoArgsConstructor
 @Getter
