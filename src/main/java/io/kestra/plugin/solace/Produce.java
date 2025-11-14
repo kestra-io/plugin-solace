@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.kestra.core.utils.Rethrow.throwFunction;
 
@@ -135,25 +136,22 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
 
     @Override
     public Output run(RunContext runContext) throws Exception {
-        final InputStreamProvider provider = new InputStreamProvider(runContext);
-        
-        int messageCount = Data.from(from).read(runContext)
+        InputStreamProvider provider = new InputStreamProvider(runContext);
+
+        int totalSentMessages = Data.from(from)
+            .read(runContext)
             .map(throwFunction(row -> {
-                InputStream is;
-                if (row instanceof String s) {
-                    is = provider.get(s);
-                } else if (row instanceof Map<?, ?> m) {
-                    is = provider.get((Map<String, Object>) m);
-                } else {
-                    throw new IllegalArgumentException("Unsupported type for task-property `from`");
+                try (InputStream is = provider.get(row)) {
+                    return send(runContext, is).getMessagesCount();
                 }
-                return send(runContext, is).getMessagesCount();
             }))
             .reduce(Integer::sum)
-            .blockOptional().orElse(0);
+            .blockOptional()
+            .orElse(0);
 
-        return new Output(messageCount);
+        return new Output(totalSentMessages);
     }
+
 
     private Output send(final RunContext runContext, final InputStream stream) throws Exception {
         final Serde serde = runContext.render(getMessageSerializer())
