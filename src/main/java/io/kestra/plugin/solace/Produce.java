@@ -25,7 +25,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -92,13 +91,13 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
         @Metric(name = "messages", description = "Number of messages", type = Counter.TYPE),
     }
 )
-@Schema(title = "Publish messages to a Solace Broker.")
-@Slf4j
+@Schema(
+  title = "Publish messages to a Solace Broker."
+)
 @SuperBuilder
 @NoArgsConstructor
 @Getter
 public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output>, Data.From {
-
     @Schema(
         title = "The content of the message to be published to Solace",
         description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps.")
