@@ -105,9 +105,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.hamcrest:hamcrest"
     testImplementation "org.hamcrest:hamcrest-library"
-    testImplementation "org.testcontainers:testcontainers:1.21.3"
-    testImplementation "org.testcontainers:junit-jupiter:1.21.3"
-    testImplementation "org.testcontainers:solace:1.21.3"
+    testImplementation "org.testcontainers:testcontainers:2.0.2"
+    testImplementation "org.testcontainers:junit-jupiter:2.0.2"
+    testImplementation "org.testcontainers:solace:2.0.2"
 }
 
 /**********************************************************************************************************************\
