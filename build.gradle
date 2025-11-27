@@ -53,7 +53,7 @@ dependencies {
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
 
     // Solace Messaging API for Java Dependencies
-    api 'com.solace:solace-messaging-client:1.8.0'
+    api 'com.solace:solace-messaging-client:1.8.2'
 
     // Logs
     compileOnly'org.slf4j:slf4j-api'
