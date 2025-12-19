@@ -1,0 +1,8 @@
+group: io.kestra.plugin.solace
+name: "solace"
+title: "Solace"
+description: "Tasks that publish, consume, and trigger workflows with Solace messaging."
+body: "Provide Solace connection details (host, VPN, username/password), topics/queues, and serializers to send messages, consume with acknowledgment options, or trigger flows when new messages arrive."
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
