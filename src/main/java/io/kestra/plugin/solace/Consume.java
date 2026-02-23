@@ -57,7 +57,8 @@ import java.util.Map;
     )
 })
 @Schema(
-    title = "Consume messages from a Solace broker."
+    title = "Consume messages from Solace queue",
+    description = "Pulls messages from a Solace queue, deserializes them, and writes them to internal storage. Defaults to STRING deserializer, up to 100 messages or 10 seconds per poll; returns the storage URI and message count."
 )
 @NoArgsConstructor
 @SuperBuilder
@@ -137,12 +138,14 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
         @Schema(
-            title = "Number of messages consumed from the Solace broker."
+            title = "Messages consumed",
+            description = "Total number of messages received in this run."
         )
         private final Integer messagesCount;
 
         @Schema(
-            title = "URI of a Kestra's internal storage file containing the messages."
+            title = "Messages file URI",
+            description = "Internal storage URI (`kestra://`) containing the serialized messages."
         )
         private URI uri;
     }

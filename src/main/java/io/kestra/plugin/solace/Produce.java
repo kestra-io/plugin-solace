@@ -92,42 +92,43 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
     }
 )
 @Schema(
-  title = "Publish messages to a Solace Broker."
+  title = "Publish messages to Solace topics",
+  description = "Publishes one or more messages to a Solace Broker topic using the chosen serializer. Defaults to persistent delivery with a 1 minute acknowledgement wait; DIRECT skips acknowledgements." 
 )
 @SuperBuilder
 @NoArgsConstructor
 @Getter
 public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.Output>, Data.From {
     @Schema(
-        title = "The content of the message to be published to Solace",
-        description = "Can be an internal storage URI, a map (i.e. a list of key-value pairs) or a list of maps.")
+        title = "Message content",
+        description = "Internal storage URI (`kestra://`), a map, or a list of maps to publish."
+    )
     @NotNull
     private Object from;
 
-    @Schema(title = "The topic destination to publish messages.")
+    @Schema(title = "Topic destination", description = "Rendered topic string for all outgoing messages.")
     @NotNull
     private Property<String> topicDestination;
 
-    @Schema(title = "The Serializer to be used for serializing messages.")
+    @Schema(title = "Message serializer", description = "Serde used to encode payloads. Defaults to STRING.")
     @Builder.Default
     private Property<Serdes> messageSerializer = Property.ofValue(Serdes.STRING);
 
-    @Schema(title = "The config properties to be passed to the Serializer.", description = "Configs in key/value pairs.")
+    @Schema(title = "Serializer properties", description = "Key/value configs passed to the serializer.")
     @Builder.Default
     protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
-    @Schema(title = "The delivery mode to be used for publishing messages.")
+    @Schema(title = "Delivery mode", description = "DIRECT sends immediately; PERSISTENT waits for broker acknowledgement.")
     @Builder.Default
     private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
 
-    @Schema(title = "The maximum time to wait for the message acknowledgement (in milliseconds) when deliveryMode is PERSISTENT.")
+    @Schema(title = "Acknowledgement timeout", description = "Max wait when deliveryMode is PERSISTENT. Defaults to 1 minute.")
     @NotNull
     @Builder.Default
     private Property<Duration> awaitAcknowledgementTimeout = Property.ofValue(Duration.ofMinutes(1));
 
-    @Schema(title = "Additional properties to customize all messages to be published.", description = """
-        Additional properties must be provided with Key of type String and Value of type String.
-        Each key can be customer provided, or it can be a Solace message property.
+    @Schema(title = "Message properties", description = """
+        Optional properties applied to every message. Keys must be String and values String; supports Solace message properties.
         """
     )
     @Builder.Default

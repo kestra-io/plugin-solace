@@ -12,42 +12,47 @@ import java.util.Map;
 public interface SolaceConsumeInterface extends SolaceConnectionInterface {
 
     @Schema(
-        title = "The name of the solace queue to consume from."
+        title = "Queue name",
+        description = "Solace queue to consume from."
     )
     @NotNull
     Property<String> getQueueName();
 
     @Schema(
-        title = "The type of the queue to be consumed."
+        title = "Queue type",
+        description = "Durability and access mode for the queue."
     )
     @NotNull
     Property<QueueTypes> getQueueType();
 
     @Schema(
-        title = "The Deserializer to be used for deserializing messages."
+        title = "Message deserializer",
+        description = "Serde used to decode messages. Defaults to STRING."
     )
     @NotNull
     Property<Serdes> getMessageDeserializer();
 
     @Schema(
-        title = "The config properties to be passed to the Deserializer.",
-        description = "Configs in key/value pairs."
+        title = "Deserializer properties",
+        description = "Key/value configs passed to the deserializer."
     )
     Property<Map<String, Object>> getMessageDeserializerProperties();
 
     @Schema(
-        title = "The maximum number of messages to be received per poll."
+        title = "Maximum messages",
+        description = "Upper bound of messages per poll. Defaults to 100."
     )
     Property<Integer> getMaxMessages();
 
     @Schema(
-        title = "The maximum time to wait for receiving a number of messages up to `maxMessages`."
+        title = "Maximum duration",
+        description = "Max poll duration. Defaults to 10 seconds."
     )
     Property<Duration> getMaxDuration();
 
     @Schema(
-        title = "The message selector to be used for receiving messages.",
-        description = "Enables support for message selection based on message header parameter and message properties values."
+        title = "Message selector",
+        description = "Solace selector expression to filter messages on headers/properties."
     )
     Property<String> getMessageSelector();
 }
