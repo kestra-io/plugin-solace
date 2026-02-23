@@ -59,7 +59,8 @@ import java.util.Optional;
     )
 })
 @Schema(
-    title = "Trigger flow based on messages received from a Solace broker, creating one execution per batch of messages."
+    title = "Trigger flow from Solace queue",
+    description = "Polls a Solace queue and starts one execution per batch of received messages. Defaults: 60s interval, up to 100 messages or 10s per poll; respects the configured deserializer and selector."
 )
 @SuperBuilder
 @NoArgsConstructor
@@ -68,38 +69,51 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
 
 
     // TRIGGER'S PROPERTIES
+    @Schema(title = "Polling interval", description = "How often to poll Solace. Defaults to 60 seconds.")
     @Builder.Default
     private Duration interval = Duration.ofSeconds(60);
 
     // TASK'S PROPERTIES
+    @Schema(title = "Solace username")
     private Property<String> username;
 
+    @Schema(title = "Solace password")
     private Property<String> password;
 
+    @Schema(title = "Solace VPN", description = "VPN name to connect to. Defaults to `default`.")
     @Builder.Default
     private Property<String> vpn = Property.ofValue("default");
 
+    @Schema(title = "Solace host", description = "Broker hostname and port, for example `localhost:55555`.")
     private Property<String> host;
 
+    @Schema(title = "Connection properties", description = "Additional broker connection properties in key/value pairs.")
     @Builder.Default
     private Property<Map<String, String>> properties = Property.ofValue(new HashMap<>());
 
+    @Schema(title = "Queue name", description = "Queue to consume from.")
     private Property<String> queueName;
 
+    @Schema(title = "Queue type", description = "Durability and access mode for the queue.")
     private Property<QueueTypes> queueType;
 
+    @Schema(title = "Message deserializer", description = "Serde used to decode payloads. Defaults to STRING.")
     @Builder.Default
     private Property<Serdes> messageDeserializer = Property.ofValue(Serdes.STRING);
 
+    @Schema(title = "Deserializer properties", description = "Key/value configs passed to the deserializer.")
     @Builder.Default
     private Property<Map<String, Object>> messageDeserializerProperties = Property.ofValue(new HashMap<>());
 
+    @Schema(title = "Maximum messages", description = "Max messages per poll before returning. Defaults to 100.")
     @Builder.Default
     private Property<Integer> maxMessages = Property.ofValue(100);
 
+    @Schema(title = "Maximum duration", description = "Max poll duration before returning. Defaults to 10 seconds.")
     @Builder.Default
     private Property<Duration> maxDuration = Property.ofValue(Duration.ofSeconds(10));
 
+    @Schema(title = "Message selector", description = "Solace selector expression to filter messages on headers/properties.")
     private Property<String> messageSelector;
 
     /**

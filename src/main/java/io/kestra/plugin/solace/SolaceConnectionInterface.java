@@ -10,29 +10,32 @@ import java.util.Map;
 public interface SolaceConnectionInterface {
 
     @Schema(
-        title = "The Solace username."
+        title = "Solace username"
     )
     Property<String> getUsername() throws IllegalVariableEvaluationException;
 
     @Schema(
-        title = "The Solace password."
+        title = "Solace password"
     )
     Property<String> getPassword() throws IllegalVariableEvaluationException;
 
     @Schema(
-        title = "The Solace VPN to connect with."
+        title = "Solace VPN",
+        description = "VPN name to connect to. Defaults to `default` when not overridden."
     )
     @NotNull
     Property<String> getVpn() throws IllegalVariableEvaluationException;
 
     @Schema(
-        title = "The Solace hostname to connect with."
+        title = "Solace host",
+        description = "Broker hostname and port, for example `localhost:55555`."
     )
     @NotNull
     Property<String> getHost() throws IllegalVariableEvaluationException;
 
     @Schema(
-        title = "The Solace properties to be used for connecting to the broker."
+        title = "Connection properties",
+        description = "Additional broker connection properties in key/value pairs."
     )
     Property<Map<String, String>> getProperties() throws IllegalVariableEvaluationException;
 }
