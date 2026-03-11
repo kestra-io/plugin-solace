@@ -26,6 +26,5 @@ public enum QueueTypes {
         }
     };
 
-
     public abstract Queue get(String queueName);
 }

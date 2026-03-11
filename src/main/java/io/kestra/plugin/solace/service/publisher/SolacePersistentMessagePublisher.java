@@ -1,15 +1,17 @@
 package io.kestra.plugin.solace.service.publisher;
 
+import java.time.Duration;
+import java.util.Objects;
+
+import org.slf4j.Logger;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.publisher.MessagePublisher;
 import com.solace.messaging.publisher.OutboundMessage;
 import com.solace.messaging.publisher.PersistentMessagePublisher;
 import com.solace.messaging.resources.Topic;
-import io.kestra.plugin.solace.serde.Serde;
-import org.slf4j.Logger;
 
-import java.time.Duration;
-import java.util.Objects;
+import io.kestra.plugin.solace.serde.Serde;
 
 public final class SolacePersistentMessagePublisher extends AbstractSolaceDirectMessagePublisher {
 
@@ -22,9 +24,9 @@ public final class SolacePersistentMessagePublisher extends AbstractSolaceDirect
     private final Duration awaitAcknowledgementTimeout;
 
     public SolacePersistentMessagePublisher(final Topic topic,
-                                            final Serde serde,
-                                            final Logger logger,
-                                            final Duration awaitAcknowledgementTimeout) {
+        final Serde serde,
+        final Logger logger,
+        final Duration awaitAcknowledgementTimeout) {
         super(serde, logger);
         this.topic = Objects.requireNonNull(topic, "topic cannot be null");
         this.awaitAcknowledgementTimeout = awaitAcknowledgementTimeout;
@@ -42,7 +44,8 @@ public final class SolacePersistentMessagePublisher extends AbstractSolaceDirect
             .build()
             .start();
 
-        publisher.setMessagePublishReceiptListener(publishReceipt -> {
+        publisher.setMessagePublishReceiptListener(publishReceipt ->
+        {
             if (logger().isTraceEnabled()) {
                 if (publishReceipt.isPersisted()) {
                     logger().trace("Message reached a broker and persistence confirmation was received back.");

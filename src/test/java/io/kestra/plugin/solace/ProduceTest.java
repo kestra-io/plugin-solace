@@ -1,18 +1,20 @@
 package io.kestra.plugin.solace;
 
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.solace.Service;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.solace.Service;
 
-import java.util.List;
-import java.util.Map;
+import jakarta.inject.Inject;
 
 @KestraTest
 class ProduceTest extends BaseSolaceIT {
@@ -45,10 +47,12 @@ class ProduceTest extends BaseSolaceIT {
         RunContext runContext = runContextFactory.of();
 
         Produce task = Produce.builder()
-            .from(List.of(
-                Map.of("payload", "msg1"),
-                Map.of("payload", "msg2")
-            ))
+            .from(
+                List.of(
+                    Map.of("payload", "msg1"),
+                    Map.of("payload", "msg2")
+                )
+            )
             .messageSerializer(Property.ofValue(Serdes.STRING))
             .username(Property.ofValue(solaceContainer.getUsername()))
             .password(Property.ofValue(solaceContainer.getPassword()))

@@ -1,14 +1,15 @@
 package io.kestra.plugin.solace;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.Task;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @NoArgsConstructor
 @SuperBuilder

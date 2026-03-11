@@ -1,14 +1,16 @@
 package io.kestra.plugin.solace.service.publisher;
 
+import java.util.Objects;
+
+import org.slf4j.Logger;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.publisher.DirectMessagePublisher;
 import com.solace.messaging.publisher.MessagePublisher;
 import com.solace.messaging.publisher.OutboundMessage;
 import com.solace.messaging.resources.Topic;
-import io.kestra.plugin.solace.serde.Serde;
-import org.slf4j.Logger;
 
-import java.util.Objects;
+import io.kestra.plugin.solace.serde.Serde;
 
 public final class SolaceDirectMessagePublisher extends AbstractSolaceDirectMessagePublisher {
 

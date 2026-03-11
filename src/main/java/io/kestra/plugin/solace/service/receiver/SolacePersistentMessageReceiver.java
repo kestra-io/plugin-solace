@@ -1,16 +1,18 @@
 package io.kestra.plugin.solace.service.receiver;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.PersistentMessageReceiverBuilder;
 import com.solace.messaging.receiver.InboundMessage;
 import com.solace.messaging.receiver.PersistentMessageReceiver;
 import com.solace.messaging.resources.Queue;
-import io.kestra.plugin.solace.serde.Serde;
-import org.slf4j.Logger;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import io.kestra.plugin.solace.serde.Serde;
 
 /**
  * Service for consuming messages.
@@ -23,7 +25,7 @@ public class SolacePersistentMessageReceiver {
     /**
      * Creates a new {@link SolacePersistentMessageReceiver} instance.
      *
-     * @param serde  The serde for message payload - must not be {@code null}.
+     * @param serde The serde for message payload - must not be {@code null}.
      * @param logger The logger - must not be {@code null}.
      */
     public SolacePersistentMessageReceiver(final Serde serde, final Logger logger) {
@@ -35,14 +37,13 @@ public class SolacePersistentMessageReceiver {
      * Polls messages from the given Solace queue.
      *
      * @param messagingService The {@link MessagingService}.
-     * @param context          The receiver context.
-     * @param listener         The message listener.
+     * @param context The receiver context.
+     * @param listener The message listener.
      */
     public int poll(final MessagingService messagingService,
-                    final ReceiverContext context,
-                    final Queue queue,
-                    final MessageListener listener
-    ) {
+        final ReceiverContext context,
+        final Queue queue,
+        final MessageListener listener) {
 
         try {
             final long maxDurationInMillis = context.maxDuration().toMillis();
@@ -91,8 +92,8 @@ public class SolacePersistentMessageReceiver {
     }
 
     private static boolean isCompleted(ReceiverContext context,
-                                       int totalReceivedMessages,
-                                       long timeElapsedInMillis) {
+        int totalReceivedMessages,
+        long timeElapsedInMillis) {
         return totalReceivedMessages >= context.maxMessages() || timeElapsedInMillis >= context.maxDuration().toMillis();
     }
 
@@ -113,8 +114,7 @@ public class SolacePersistentMessageReceiver {
         String correlationId,
         Boolean isRedelivered,
         Object payload,
-        Map<String, String> properties
-    ) {
+        Map<String, String> properties) {
     }
 
 }

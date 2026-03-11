@@ -1,6 +1,18 @@
 package io.kestra.plugin.solace;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+
 import com.solace.messaging.MessagingService;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.property.Property;
@@ -13,49 +25,42 @@ import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
 import io.kestra.plugin.solace.service.receiver.ReceiverContext;
 import io.kestra.plugin.solace.service.receiver.SolacePersistentMessageReceiver;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.slf4j.Logger;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The {@link RunnableTask} can be used for consuming messages from Solace.
  */
-@Plugin(examples = {
-    @Example(
-        title = "Consume messages from a Solace queue.",
-        full = true,
-        code = {
-            """
-                id: consume_message_from_solace_queue
-                namespace: company.team
-
-                tasks:
-                  - id: consume_from_solace
-                    type: io.kestra.plugin.solace.Consume
-                    host: localhost:55555
-                    username: admin
-                    password: admin
-                    vpn: default
-                    messageDeserializer: JSON
-                    queueName: test_queue
-                    queueType: DURABLE_EXCLUSIVE
+@Plugin(
+    examples = {
+        @Example(
+            title = "Consume messages from a Solace queue.",
+            full = true,
+            code = {
                 """
-        }
-    )
-})
+                    id: consume_message_from_solace_queue
+                    namespace: company.team
+
+                    tasks:
+                      - id: consume_from_solace
+                        type: io.kestra.plugin.solace.Consume
+                        host: localhost:55555
+                        username: admin
+                        password: admin
+                        vpn: default
+                        messageDeserializer: JSON
+                        queueName: test_queue
+                        queueType: DURABLE_EXCLUSIVE
+                    """
+            }
+        )
+    }
+)
 @Schema(
     title = "Consume messages from Solace queue",
     description = "Pulls messages from a Solace queue, deserializes them, and writes them to internal storage. Defaults to STRING deserializer, up to 100 messages or 10 seconds per poll; returns the storage URI and message count."
@@ -103,8 +108,10 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
         try (
             BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(tempFile))
         ) {
-            final Serde serde = runContext.render(task
-                .getMessageDeserializer()).as(Serdes.class).orElseThrow()
+            final Serde serde = runContext.render(
+                task
+                    .getMessageDeserializer()
+            ).as(Serdes.class).orElseThrow()
                 .create(runContext.render(task.getMessageDeserializerProperties()).asMap(String.class, Object.class));
             final MessagingService service = MessagingServiceFactory.create(task, runContext);
             final Logger logger = runContext.logger();
@@ -121,13 +128,15 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
                 ),
                 runContext.render(task.getQueueType()).as(QueueTypes.class).orElseThrow()
                     .get(queueName),
-                message -> {
+                message ->
+                {
                     try {
                         FileSerde.write(output, message);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                });
+                }
+            );
 
             output.flush();
             return new Output(totalReceivedMessages, runContext.storage().putFile(tempFile));

@@ -1,5 +1,12 @@
 package io.kestra.plugin.solace;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.conditions.ConditionContext;
@@ -14,50 +21,47 @@ import io.kestra.core.models.triggers.TriggerOutput;
 import io.kestra.core.runners.RunContext;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.slf4j.Logger;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * The {@link Trigger} can be used for triggering flow based on messages received from Solace.
  */
-@Plugin(examples = {
-    @Example(
-        title = "Trigger flow based on messages received from a Solace broker.",
-        full = true,
-        code = {
-            """
-                id: trigger_from_solace_queue
-                namespace: company.team
-
-                tasks:
-                  - id: hello
-                    type: io.kestra.plugin.core.log.Log
-                    message: Hello there! I received {{ trigger.messagesCount }} from Solace!
-
-                triggers:
-                  - id: read_from_solace
-                    type: io.kestra.plugin.solace.Trigger
-                    interval: PT30S
-                    host: localhost:55555
-                    username: admin
-                    password: admin
-                    vpn: default
-                    messageDeserializer: JSON
-                    queueName: test_queue
-                    queueType: DURABLE_EXCLUSIVE
+@Plugin(
+    examples = {
+        @Example(
+            title = "Trigger flow based on messages received from a Solace broker.",
+            full = true,
+            code = {
                 """
-        }
-    )
-})
+                    id: trigger_from_solace_queue
+                    namespace: company.team
+
+                    tasks:
+                      - id: hello
+                        type: io.kestra.plugin.core.log.Log
+                        message: Hello there! I received {{ trigger.messagesCount }} from Solace!
+
+                    triggers:
+                      - id: read_from_solace
+                        type: io.kestra.plugin.solace.Trigger
+                        interval: PT30S
+                        host: localhost:55555
+                        username: admin
+                        password: admin
+                        vpn: default
+                        messageDeserializer: JSON
+                        queueName: test_queue
+                        queueType: DURABLE_EXCLUSIVE
+                    """
+            }
+        )
+    }
+)
 @Schema(
     title = "Trigger flow from Solace queue",
     description = "Polls a Solace queue and starts one execution per batch of received messages. Defaults: 60s interval, up to 100 messages or 10s per poll; respects the configured deserializer and selector."
@@ -66,7 +70,6 @@ import java.util.Optional;
 @NoArgsConstructor
 @Getter
 public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, PollingTriggerInterface, TriggerOutput<Consume.Output> {
-
 
     // TRIGGER'S PROPERTIES
     @Schema(title = "Polling interval", description = "How often to poll Solace. Defaults to 60 seconds.")
@@ -121,7 +124,7 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
      **/
     @Override
     public Optional<Execution> evaluate(ConditionContext conditionContext,
-                                        TriggerContext context) throws Exception {
+        TriggerContext context) throws Exception {
 
         final RunContext runContext = conditionContext.getRunContext();
         final Logger logger = runContext.logger();

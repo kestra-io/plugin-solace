@@ -1,7 +1,19 @@
 package io.kestra.plugin.solace;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.time.Duration;
+import java.util.Collections;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.solace.Service;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.resources.Topic;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
@@ -10,17 +22,8 @@ import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.solace.Service;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
-import java.time.Duration;
-import java.util.Collections;
+import jakarta.inject.Inject;
 
 @KestraTest
 class ConsumeTest extends BaseSolaceIT {

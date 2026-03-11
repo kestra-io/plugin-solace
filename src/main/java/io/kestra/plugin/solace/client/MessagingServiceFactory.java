@@ -1,13 +1,14 @@
 package io.kestra.plugin.solace.client;
 
+import java.util.Objects;
+import java.util.Properties;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.config.SolaceProperties;
 import com.solace.messaging.config.profile.ConfigurationProfile;
+
 import io.kestra.core.runners.RunContext;
 import io.kestra.plugin.solace.SolaceConnectionInterface;
-
-import java.util.Objects;
-import java.util.Properties;
 
 public final class MessagingServiceFactory {
 

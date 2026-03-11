@@ -1,5 +1,5 @@
 @PluginSubGroup(
-    description = "This sub-group of plugins contains tasks for using the Solace broker.",categories = {
+    description = "This sub-group of plugins contains tasks for using the Solace broker.", categories = {
         PluginSubGroup.PluginCategory.DATA
     }
 )

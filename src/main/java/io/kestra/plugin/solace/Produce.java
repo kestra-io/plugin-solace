@@ -1,7 +1,15 @@
 package io.kestra.plugin.solace;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.solace.messaging.MessagingService;
 import com.solace.messaging.resources.Topic;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
@@ -18,6 +26,7 @@ import io.kestra.plugin.solace.service.publisher.AbstractSolaceDirectMessagePubl
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
 import io.kestra.plugin.solace.service.publisher.SolaceDirectMessagePublisher;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -25,14 +34,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static io.kestra.core.utils.Rethrow.throwFunction;
 
@@ -92,8 +93,8 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
     }
 )
 @Schema(
-  title = "Publish messages to Solace topics",
-  description = "Publishes one or more messages to a Solace Broker topic using the chosen serializer. Defaults to persistent delivery with a 1 minute acknowledgement wait; DIRECT skips acknowledgements." 
+    title = "Publish messages to Solace topics",
+    description = "Publishes one or more messages to a Solace Broker topic using the chosen serializer. Defaults to persistent delivery with a 1 minute acknowledgement wait; DIRECT skips acknowledgements."
 )
 @SuperBuilder
 @NoArgsConstructor
@@ -127,9 +128,10 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @Builder.Default
     private Property<Duration> awaitAcknowledgementTimeout = Property.ofValue(Duration.ofMinutes(1));
 
-    @Schema(title = "Message properties", description = """
-        Optional properties applied to every message. Keys must be String and values String; supports Solace message properties.
-        """
+    @Schema(
+        title = "Message properties", description = """
+            Optional properties applied to every message. Keys must be String and values String; supports Solace message properties.
+            """
     )
     @Builder.Default
     protected Property<Map<String, String>> messageProperties = Property.ofValue(new HashMap<>());
@@ -140,7 +142,8 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
 
         int totalSentMessages = Data.from(from)
             .read(runContext)
-            .map(throwFunction(row -> {
+            .map(throwFunction(row ->
+            {
                 try (InputStream is = provider.get(row)) {
                     return send(runContext, is).getMessagesCount();
                 }
@@ -151,7 +154,6 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
 
         return new Output(totalSentMessages);
     }
-
 
     private Output send(final RunContext runContext, final InputStream stream) throws Exception {
         final Serde serde = runContext.render(getMessageSerializer())

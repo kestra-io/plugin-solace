@@ -1,20 +1,23 @@
 package io.kestra.plugin.solace.service.publisher;
 
-import com.solace.messaging.MessagingService;
-import com.solace.messaging.publisher.DirectMessagePublisher;
-import com.solace.messaging.publisher.MessagePublisher;
-import com.solace.messaging.publisher.OutboundMessage;
-import io.kestra.core.serializers.FileSerde;
-import io.kestra.plugin.solace.serde.Serde;
-import org.slf4j.Logger;
-import reactor.core.publisher.Flux;
-
 import java.io.BufferedReader;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+
+import com.solace.messaging.MessagingService;
+import com.solace.messaging.publisher.DirectMessagePublisher;
+import com.solace.messaging.publisher.MessagePublisher;
+import com.solace.messaging.publisher.OutboundMessage;
+
+import io.kestra.core.serializers.FileSerde;
+import io.kestra.plugin.solace.serde.Serde;
+
+import reactor.core.publisher.Flux;
 
 import static io.kestra.core.utils.Rethrow.throwFunction;
 
@@ -41,21 +44,22 @@ public abstract class AbstractSolaceDirectMessagePublisher {
     /**
      * Publishes all messages from the given reader.
      *
-     * @param reader                      The reader used to retrieve messages to be sent.
-     * @param messagingService            The {@link MessagingService} used to build a new {@link DirectMessagePublisher}.
+     * @param reader The reader used to retrieve messages to be sent.
+     * @param messagingService The {@link MessagingService} used to build a new {@link DirectMessagePublisher}.
      * @param additionalMessageProperties The additional message properties to customize all messages to b published.
      * @return a new {@link SendResult}.
      */
     public SendResult send(BufferedReader reader,
-                           MessagingService messagingService,
-                           Map<String, String> additionalMessageProperties) {
+        MessagingService messagingService,
+        Map<String, String> additionalMessageProperties) {
 
         MessagePublisher publisher = open(messagingService);
         logger.debug("Connected to Solace instance name {}", publisher.publisherInfo().getInstanceName());
         try {
             Flux<OutboundMessageObject> flowable = FileSerde.readAll(reader, OutboundMessageObject.class);
             final Integer numSentMessages = flowable
-                .map(throwFunction(outboundMessageObject -> {
+                .map(throwFunction(outboundMessageObject ->
+                {
                     final OutboundMessage message = buildOutboundMessage(
                         messagingService,
                         outboundMessageObject,
@@ -93,8 +97,8 @@ public abstract class AbstractSolaceDirectMessagePublisher {
     protected abstract void publish(final OutboundMessage message) throws Exception;
 
     private OutboundMessage buildOutboundMessage(MessagingService messagingService,
-                                                 OutboundMessageObject object,
-                                                 Map<String, String> additionalMessageProperties) {
+        OutboundMessageObject object,
+        Map<String, String> additionalMessageProperties) {
         Properties properties = new Properties();
         Optional.ofNullable(additionalMessageProperties).ifPresent(properties::putAll);
         Optional.ofNullable(object.properties()).ifPresent(properties::putAll);

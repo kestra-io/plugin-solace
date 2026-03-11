@@ -1,6 +1,16 @@
 package io.kestra.plugin.solace;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
+import org.testcontainers.solace.Service;
+
 import com.google.common.collect.ImmutableMap;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.property.Property;
@@ -9,24 +19,15 @@ import io.kestra.core.queues.QueueInterface;
 import io.kestra.core.repositories.LocalFlowRepositoryLoader;
 import io.kestra.core.runners.FlowListeners;
 import io.kestra.core.runners.RunContextFactory;
-import io.kestra.core.runners.Worker;
-import io.kestra.scheduler.AbstractScheduler;
-import io.kestra.core.utils.IdUtils;
 import io.kestra.core.utils.TestsUtils;
 import io.kestra.jdbc.runner.JdbcScheduler;
+import io.kestra.scheduler.AbstractScheduler;
 import io.kestra.worker.DefaultWorker;
+
 import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.solace.Service;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -67,7 +68,8 @@ class TriggerTest extends BaseSolaceIT {
             );
         ) {
             // wait for execution
-            Flux<Execution> receive = TestsUtils.receive(executionQueue, execution -> {
+            Flux<Execution> receive = TestsUtils.receive(executionQueue, execution ->
+            {
                 queueCount.countDown();
                 assertThat(execution.getLeft().getFlowId(), is("trigger"));
             });
@@ -83,14 +85,16 @@ class TriggerTest extends BaseSolaceIT {
                 .vpn(Property.ofValue(SOLACE_VPN))
                 .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
                 .topicDestination(Property.ofValue("topic"))
-                .from(List.of(
-                    ImmutableMap.builder()
-                        .put("payload", "value1")
-                        .build(),
-                    ImmutableMap.builder()
-                        .put("payload", "value2")
-                        .build()
-                ))
+                .from(
+                    List.of(
+                        ImmutableMap.builder()
+                            .put("payload", "value1")
+                            .build(),
+                        ImmutableMap.builder()
+                            .put("payload", "value2")
+                            .build()
+                    )
+                )
                 .build();
 
             worker.run();

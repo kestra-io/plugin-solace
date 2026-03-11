@@ -1,11 +1,12 @@
 package io.kestra.plugin.solace;
 
+import java.util.Map;
+
 import io.kestra.core.exceptions.IllegalVariableEvaluationException;
 import io.kestra.core.models.property.Property;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.Map;
 
 public interface SolaceConnectionInterface {
 

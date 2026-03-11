@@ -1,5 +1,7 @@
 package io.kestra.plugin.solace;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -7,8 +9,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.solace.Service;
 import org.testcontainers.solace.SolaceContainer;
-
-import java.io.IOException;
 
 @Testcontainers
 public class BaseSolaceIT {
@@ -31,22 +31,25 @@ public class BaseSolaceIT {
         .withVpn(SOLACE_VPN);
 
     protected void createQueueWithSubscriptionTopic(String queueName,
-                                                    String subscriptionTopic) {
-        executeCommand("curl",
+        String subscriptionTopic) {
+        executeCommand(
+            "curl",
             "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/topicEndpoints",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"topicEndpointName\":\"" + subscriptionTopic + "\",\"accessType\":\"exclusive\",\"permission\":\"modify-topic\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
-        executeCommand("curl",
+        executeCommand(
+            "curl",
             "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/queues",
             "-X", "POST",
             "-u", "admin:admin",
             "-H", "Content-Type:application/json",
             "-d", "{\"queueName\":\"" + queueName + "\",\"accessType\":\"exclusive\",\"maxMsgSpoolUsage\":200,\"permission\":\"consume\",\"ingressEnabled\":true,\"egressEnabled\":true}"
         );
-        executeCommand("curl",
+        executeCommand(
+            "curl",
             "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/queues/" + queueName + "/subscriptions",
             "-X", "POST",
             "-u", "admin:admin",
