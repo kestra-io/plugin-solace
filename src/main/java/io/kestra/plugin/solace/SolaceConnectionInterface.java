@@ -7,17 +7,20 @@ import io.kestra.core.models.property.Property;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import io.kestra.core.models.annotations.PluginProperty;
 
 public interface SolaceConnectionInterface {
 
     @Schema(
         title = "Solace username"
     )
+    @PluginProperty(group = "connection")
     Property<String> getUsername() throws IllegalVariableEvaluationException;
 
     @Schema(
         title = "Solace password"
     )
+    @PluginProperty(group = "connection")
     Property<String> getPassword() throws IllegalVariableEvaluationException;
 
     @Schema(
@@ -25,6 +28,7 @@ public interface SolaceConnectionInterface {
         description = "VPN name to connect to. Defaults to `default` when not overridden."
     )
     @NotNull
+    @PluginProperty(group = "main")
     Property<String> getVpn() throws IllegalVariableEvaluationException;
 
     @Schema(
@@ -32,11 +36,13 @@ public interface SolaceConnectionInterface {
         description = "Broker hostname and port, for example `localhost:55555`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     Property<String> getHost() throws IllegalVariableEvaluationException;
 
     @Schema(
         title = "Connection properties",
         description = "Additional broker connection properties in key/value pairs."
     )
+    @PluginProperty(group = "advanced")
     Property<Map<String, String>> getProperties() throws IllegalVariableEvaluationException;
 }

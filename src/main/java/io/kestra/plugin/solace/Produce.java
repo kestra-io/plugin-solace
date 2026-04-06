@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import static io.kestra.core.utils.Rethrow.throwFunction;
+import io.kestra.core.models.annotations.PluginProperty;
 
 /**
  * The {@link RunnableTask} can be used for producing messages to a Solace Broker.
@@ -105,27 +106,33 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
         description = "Internal storage URI (`kestra://`), a map, or a list of maps to publish."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object from;
 
     @Schema(title = "Topic destination", description = "Rendered topic string for all outgoing messages.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> topicDestination;
 
     @Schema(title = "Message serializer", description = "Serde used to encode payloads. Defaults to STRING.")
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Serdes> messageSerializer = Property.ofValue(Serdes.STRING);
 
     @Schema(title = "Serializer properties", description = "Key/value configs passed to the serializer.")
     @Builder.Default
+    @PluginProperty(group = "advanced")
     protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
     @Schema(title = "Delivery mode", description = "DIRECT sends immediately; PERSISTENT waits for broker acknowledgement.")
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
 
     @Schema(title = "Acknowledgement timeout", description = "Max wait when deliveryMode is PERSISTENT. Defaults to 1 minute.")
     @NotNull
     @Builder.Default
+    @PluginProperty(group = "execution")
     private Property<Duration> awaitAcknowledgementTimeout = Property.ofValue(Duration.ofMinutes(1));
 
     @Schema(
@@ -134,6 +141,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
             """
     )
     @Builder.Default
+    @PluginProperty(group = "advanced")
     protected Property<Map<String, String>> messageProperties = Property.ofValue(new HashMap<>());
 
     @Override
