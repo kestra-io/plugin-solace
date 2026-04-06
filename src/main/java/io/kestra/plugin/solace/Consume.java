@@ -32,6 +32,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 /**
  * The {@link RunnableTask} can be used for consuming messages from Solace.
@@ -75,23 +76,30 @@ public class Consume extends AbstractSolaceTask implements SolaceConsumeInterfac
 
     // TASK'S PROPERTIES
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> queueName;
 
     @NotNull
+    @PluginProperty(group = "main")
     private Property<QueueTypes> queueType;
 
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Serdes> messageDeserializer = Property.ofValue(Serdes.STRING);
 
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Map<String, Object>> messageDeserializerProperties = Property.ofValue(new HashMap<>());
 
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Integer> maxMessages = Property.ofValue(100);
 
     @Builder.Default
+    @PluginProperty(group = "execution")
     private Property<Duration> maxDuration = Property.ofValue(Duration.ofSeconds(10));
 
+    @PluginProperty(group = "processing")
     private Property<String> messageSelector;
 
     /**
