@@ -14,13 +14,13 @@ public interface SolaceConnectionInterface {
     @Schema(
         title = "Solace username"
     )
-    @PluginProperty(group = "connection")
+    @PluginProperty(secret = true, group = "connection")
     Property<String> getUsername() throws IllegalVariableEvaluationException;
 
     @Schema(
         title = "Solace password"
     )
-    @PluginProperty(group = "connection")
+    @PluginProperty(secret = true, group = "connection")
     Property<String> getPassword() throws IllegalVariableEvaluationException;
 
     @Schema(
