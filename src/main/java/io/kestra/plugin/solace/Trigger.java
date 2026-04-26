@@ -80,11 +80,11 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
 
     // TASK'S PROPERTIES
     @Schema(title = "Solace username")
-    @PluginProperty(group = "connection")
+    @PluginProperty(secret = true, group = "connection")
     private Property<String> username;
 
     @Schema(title = "Solace password")
-    @PluginProperty(group = "connection")
+    @PluginProperty(secret = true, group = "connection")
     private Property<String> password;
 
     @Schema(title = "Solace VPN", description = "VPN name to connect to. Defaults to `default`.")
