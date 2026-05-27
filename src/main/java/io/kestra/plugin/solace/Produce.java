@@ -1,8 +1,6 @@
 package io.kestra.plugin.solace;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +11,7 @@ import com.solace.messaging.resources.Topic;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Data;
 import io.kestra.core.models.property.Property;
@@ -36,7 +35,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import static io.kestra.core.utils.Rethrow.throwFunction;
-import io.kestra.core.models.annotations.PluginProperty;
 
 /**
  * The {@link RunnableTask} can be used for producing messages to a Solace Broker.
@@ -169,30 +167,28 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
             .orElseThrow()
             .create(runContext.render(getMessageSerializerProperties()).asMap(String.class, Object.class));
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
+        final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
 
-            AbstractSolaceDirectMessagePublisher sender = switch (runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow()) {
-                case DIRECT -> new SolaceDirectMessagePublisher(topic, serde, runContext.logger());
-                case PERSISTENT -> new SolacePersistentMessagePublisher(
-                    topic,
-                    serde,
-                    runContext.logger(),
-                    runContext.render(awaitAcknowledgementTimeout).as(Duration.class).orElseThrow()
-                );
-            };
-
-            MessagingService service = MessagingServiceFactory.create(this, runContext);
-            AbstractSolaceDirectMessagePublisher.SendResult result = sender.send(
-                reader,
-                service,
-                runContext.render(messageProperties).asMap(String.class, Object.class)
+        AbstractSolaceDirectMessagePublisher sender = switch (runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow()) {
+            case DIRECT -> new SolaceDirectMessagePublisher(topic, serde, runContext.logger());
+            case PERSISTENT -> new SolacePersistentMessagePublisher(
+                topic,
+                serde,
+                runContext.logger(),
+                runContext.render(awaitAcknowledgementTimeout).as(Duration.class).orElseThrow()
             );
+        };
 
-            runContext.metric(Counter.of("messages", result.totalSentMessages()));
+        MessagingService service = MessagingServiceFactory.create(this, runContext);
+        AbstractSolaceDirectMessagePublisher.SendResult result = sender.send(
+            stream,
+            service,
+            runContext.render(messageProperties).asMap(String.class, Object.class)
+        );
 
-            return new Output(result.totalSentMessages());
-        }
+        runContext.metric(Counter.of("messages", result.totalSentMessages()));
+
+        return new Output(result.totalSentMessages());
     }
 
     @AllArgsConstructor
