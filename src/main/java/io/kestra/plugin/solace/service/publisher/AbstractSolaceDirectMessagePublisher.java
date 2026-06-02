@@ -1,6 +1,6 @@
 package io.kestra.plugin.solace.service.publisher;
 
-import java.io.BufferedReader;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -42,21 +42,21 @@ public abstract class AbstractSolaceDirectMessagePublisher {
     }
 
     /**
-     * Publishes all messages from the given reader.
+     * Publishes all messages from the given input stream.
      *
-     * @param reader The reader used to retrieve messages to be sent.
+     * @param inputStream The input stream used to retrieve messages to be sent.
      * @param messagingService The {@link MessagingService} used to build a new {@link DirectMessagePublisher}.
      * @param additionalMessageProperties The additional message properties to customize all messages to b published.
      * @return a new {@link SendResult}.
      */
-    public SendResult send(BufferedReader reader,
+    public SendResult send(InputStream inputStream,
         MessagingService messagingService,
         Map<String, String> additionalMessageProperties) {
 
         MessagePublisher publisher = open(messagingService);
         logger.debug("Connected to Solace instance name {}", publisher.publisherInfo().getInstanceName());
         try {
-            Flux<OutboundMessageObject> flowable = FileSerde.readAll(reader, OutboundMessageObject.class);
+            Flux<OutboundMessageObject> flowable = FileSerde.readAll(inputStream, OutboundMessageObject.class);
             final Integer numSentMessages = flowable
                 .map(throwFunction(outboundMessageObject ->
                 {

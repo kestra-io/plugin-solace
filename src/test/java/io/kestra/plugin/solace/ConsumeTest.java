@@ -1,9 +1,13 @@
 package io.kestra.plugin.solace;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,6 +22,7 @@ import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
+import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.solace.client.MessagingServiceFactory;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
@@ -52,9 +57,9 @@ class ConsumeTest extends BaseSolaceIT {
             .queueType(Property.ofValue(QueueTypes.DURABLE_EXCLUSIVE))
             .build();
 
-        try (BufferedReader message = new BufferedReader(new StringReader("""
+        try (InputStream message = new ByteArrayInputStream("""
             {"payload": "test-message"}
-            """))) {
+            """.getBytes(StandardCharsets.UTF_8))) {
             MessagingService service = MessagingServiceFactory.create(task, runContext);
             SolacePersistentMessagePublisher publisher = new SolacePersistentMessagePublisher(
                 Topic.of("topic"),
@@ -71,5 +76,12 @@ class ConsumeTest extends BaseSolaceIT {
 
         // Then
         Assertions.assertEquals(1, runOutput.getMessagesCount());
+
+        // Verify ION read-back from storage
+        try (InputStream is = new BufferedInputStream(runContext.storage().getFile(runOutput.getUri()), FileSerde.BUFFER_SIZE)) {
+            List<Object> result = new ArrayList<>();
+            FileSerde.read(is, result::add);
+            Assertions.assertEquals(1, result.size());
+        }
     }
 }
