@@ -80,7 +80,7 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
                         topicDestination: test/tweets
                         host: localhost:55555
                         username: admin
-                        password: admin
+                        password: "{{ secret('SOLACE_PASSWORD') }}"
                         vpn: default
                         messageSerializer: "JSON"
                     """
@@ -194,7 +194,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @AllArgsConstructor
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "Total number of messages published by the task.")
+        @Schema(title = "Total number of messages published by the task")
         private final Integer messagesCount;
     }
 }
