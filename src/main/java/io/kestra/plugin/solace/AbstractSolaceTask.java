@@ -3,6 +3,7 @@ package io.kestra.plugin.solace;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.Task;
 
@@ -16,8 +17,10 @@ import lombok.experimental.SuperBuilder;
 @Getter
 abstract class AbstractSolaceTask extends Task implements SolaceConnectionInterface {
 
+    @PluginProperty(secret = true, group = "connection")
     private Property<String> username;
 
+    @PluginProperty(secret = true, group = "connection")
     private Property<String> password;
 
     @Builder.Default
