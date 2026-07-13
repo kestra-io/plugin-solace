@@ -53,7 +53,7 @@ import lombok.experimental.SuperBuilder;
                         interval: PT30S
                         host: localhost:55555
                         username: admin
-                        password: admin
+                        password: "{{ secret('SOLACE_PASSWORD') }}"
                         vpn: default
                         messageDeserializer: JSON
                         queueName: test_queue
