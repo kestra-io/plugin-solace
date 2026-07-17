@@ -12,7 +12,9 @@ import org.testcontainers.solace.Service;
 import com.google.common.collect.ImmutableMap;
 
 import io.kestra.core.junit.annotations.KestraTest;
+import java.time.Duration;
 import io.kestra.core.models.executions.Execution;
+import io.kestra.core.runners.TestRunnerUtils;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.queues.DispatchQueueInterface;
 import io.kestra.core.repositories.LocalFlowRepositoryLoader;
@@ -23,7 +25,9 @@ import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.is;
+import static io.kestra.core.tenant.TenantService.MAIN_TENANT;
 
 @KestraTest(startRunner = true, startScheduler = true)
 class TriggerTest extends BaseSolaceIT {
@@ -34,6 +38,9 @@ class TriggerTest extends BaseSolaceIT {
     private DispatchQueueInterface<Execution> executionQueue;
 
     @Inject
+    private TestRunnerUtils runnerUtils;
+
+    @Inject
     private RunContextFactory runContextFactory;
 
     @Inject
@@ -41,14 +48,6 @@ class TriggerTest extends BaseSolaceIT {
 
     @Test
     void testTriggerTask() throws Exception {
-        CountDownLatch queueCount = new CountDownLatch(1);
-        AtomicReference<Execution> lastExecution = new AtomicReference<>();
-        executionQueue.addListener(execution -> {
-            lastExecution.set(execution);
-            queueCount.countDown();
-            assertThat(execution.getFlowId(), is("trigger"));
-        });
-
         createQueueWithSubscriptionTopic(TEST_QUEUE, "topic");
 
         Produce task = Produce.builder()
@@ -75,10 +74,10 @@ class TriggerTest extends BaseSolaceIT {
 
         task.run(TestsUtils.mockRunContext(runContextFactory, task, ImmutableMap.of()));
 
-        boolean await = queueCount.await(1, TimeUnit.MINUTES);
-        assertThat(await, is(true));
+        Execution lastExecution = runnerUtils.awaitFlowExecution(e -> true, MAIN_TENANT, "io.kestra.tests", "trigger", Duration.ofMinutes(1));
+        assertThat(lastExecution, notNullValue());
 
-        Integer trigger = (Integer) lastExecution.get().getTrigger().getVariables().get("messagesCount");
+        Integer trigger = (Integer) lastExecution.getTrigger().getVariables().get("messagesCount");
 
         assertThat(trigger, greaterThanOrEqualTo(2));
     }
