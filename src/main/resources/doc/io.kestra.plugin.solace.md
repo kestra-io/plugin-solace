@@ -4,7 +4,7 @@ Publish and consume messages on Solace PubSub+ from Kestra flows.
 
 ## Authentication
 
-Set `host` to your Solace broker URL (required) and `vpn` to the message VPN name (default `default`). For authenticated brokers, set `username` and `password`. Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and apply connection properties globally with [plugin defaults](https://kestra.io/docs/workflow-components/plugin-defaults).
+Set `host` to your Solace broker URL (required) and `vpn` to the message VPN name (default `default`). For authenticated brokers, set `username` and `password`. Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and set connection properties on each task.
 
 ## Tasks
 
