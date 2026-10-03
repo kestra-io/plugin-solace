@@ -25,6 +25,7 @@ import io.kestra.plugin.solace.service.publisher.AbstractSolaceDirectMessagePubl
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
 import io.kestra.plugin.solace.service.publisher.SolaceDirectMessagePublisher;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
+import io.kestra.plugin.solace.service.publisher.SolaceQueueMessagePublisher;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -85,6 +86,30 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
                         messageSerializer: "JSON"
                     """
             }
+        ),
+        @Example(
+            title = "Publish a message directly to a Solace queue.",
+            full = true,
+            code = {
+                """
+                    id: send_message_to_solace_queue
+                    namespace: company.team
+
+                    tasks:
+                      - id: send_message_to_queue
+                        type: io.kestra.plugin.solace.Produce
+                        from:
+                          payload: "Hello queue"
+                          properties:
+                            correlationId: "42"
+                        queueDestination: my-queue
+                        host: localhost:55555
+                        username: admin
+                        password: "{{ secret('SOLACE_PASSWORD') }}"
+                        vpn: default
+                        messageSerializer: "STRING"
+                    """
+            }
         )
     },
     metrics = {
@@ -92,8 +117,8 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
     }
 )
 @Schema(
-    title = "Publish messages to Solace topics",
-    description = "Publishes one or more messages to a Solace Broker topic using the chosen serializer. Defaults to persistent delivery with a 1 minute acknowledgement wait; DIRECT skips acknowledgements."
+    title = "Publish messages to Solace topics or queues",
+    description = "Publishes one or more messages to a Solace Broker topic or queue using the chosen serializer. Set either `topicDestination` or `queueDestination`, not both. Topic publishing defaults to persistent delivery with a 1 minute acknowledgement wait; DIRECT skips acknowledgements. Queue publishing is always persistent."
 )
 @SuperBuilder
 @NoArgsConstructor
@@ -108,9 +133,12 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     private Object from;
 
     @Schema(title = "Topic destination", description = "Rendered topic string for all outgoing messages.")
-    @NotNull
     @PluginProperty(group = "main")
     private Property<String> topicDestination;
+
+    @Schema(title = "Queue destination", description = "Rendered queue name for all outgoing messages.")
+    @PluginProperty(group = "main")
+    private Property<String> queueDestination;
 
     @Schema(title = "Message serializer", description = "Serde used to encode payloads. Defaults to STRING.")
     @Builder.Default
@@ -122,7 +150,7 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
     @PluginProperty(group = "advanced")
     protected Property<Map<String, Object>> messageSerializerProperties = Property.ofValue(new HashMap<>());
 
-    @Schema(title = "Delivery mode", description = "DIRECT sends immediately; PERSISTENT waits for broker acknowledgement.")
+    @Schema(title = "Delivery mode", description = "DIRECT sends immediately; PERSISTENT waits for broker acknowledgement. Applies to topics only; messages sent to a queue are always persistent.")
     @Builder.Default
     @PluginProperty(group = "advanced")
     private Property<DeliveryModes> deliveryMode = Property.ofValue(DeliveryModes.PERSISTENT);
@@ -144,6 +172,13 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
 
     @Override
     public Output run(RunContext runContext) throws Exception {
+        if (topicDestination == null && queueDestination == null) {
+            throw new IllegalArgumentException("Either 'topicDestination' or 'queueDestination' must be set.");
+        }
+        if (topicDestination != null && queueDestination != null) {
+            throw new IllegalArgumentException("Set only one of 'topicDestination' or 'queueDestination', not both.");
+        }
+
         InputStreamProvider provider = new InputStreamProvider(runContext);
 
         int totalSentMessages = Data.from(from)
@@ -166,6 +201,39 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
             .as(Serdes.class)
             .orElseThrow()
             .create(runContext.render(getMessageSerializerProperties()).asMap(String.class, Object.class));
+
+        if (queueDestination != null) {
+            final String queueName = runContext.render(queueDestination)
+                .as(String.class)
+                .orElseThrow();
+
+            SolaceQueueMessagePublisher sender = new SolaceQueueMessagePublisher(
+                runContext.render(getHost()).as(String.class).orElseThrow(),
+                runContext.render(getVpn()).as(String.class).orElseThrow(),
+                runContext.render(getUsername()).as(String.class).orElse(null),
+                runContext.render(getPassword()).as(String.class).orElse(null),
+                queueName,
+                serde,
+                runContext.render(getProperties()).asMap(String.class, String.class)
+            );
+
+            int totalSentMessages = sender.send(
+                stream,
+                runContext.render(messageProperties).asMap(String.class, Object.class)
+                    .entrySet()
+                    .stream()
+                    .collect(
+                        java.util.stream.Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> String.valueOf(entry.getValue())
+                        )
+                    )
+            );
+
+            runContext.metric(Counter.of("messages", totalSentMessages));
+
+            return new Output(totalSentMessages);
+        }
 
         final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
 

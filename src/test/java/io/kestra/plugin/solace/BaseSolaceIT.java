@@ -30,6 +30,31 @@ public class BaseSolaceIT {
         .withLogConsumer(new Slf4jLogConsumer(LOG))
         .withVpn(SOLACE_VPN);
 
+    protected void createQueue(String queueName) {
+        executeCommand(
+            "curl",
+            "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN + "/queues",
+            "-X", "POST",
+            "-u", "admin:admin",
+            "-H", "Content-Type:application/json",
+            "-d", "{\"queueName\":\"" + queueName + "\",\"accessType\":\"exclusive\",\"maxMsgSpoolUsage\":200,\"permission\":\"modify-topic\",\"ingressEnabled\":true,\"egressEnabled\":true}"
+        );
+    }
+
+    protected void allowPublishToQueues() {
+        executeCommand(
+            "curl",
+            "http://localhost:8080/SEMP/v2/config/msgVpns/" + SOLACE_VPN
+                + "/aclProfiles/default/publishTopicExceptions",
+            "-X", "POST",
+            "-u", "admin:admin",
+            "-H", "Content-Type:application/json",
+            "-d",
+            "{\"publishTopicException\":\"#P2P/QUE/>\","
+                + "\"publishTopicExceptionSyntax\":\"smf\"}"
+        );
+    }
+
     protected void createQueueWithSubscriptionTopic(String queueName,
         String subscriptionTopic) {
         executeCommand(
