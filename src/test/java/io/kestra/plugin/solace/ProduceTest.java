@@ -86,12 +86,10 @@ class ProduceTest extends BaseSolaceIT {
             .queueDestination(Property.ofValue(queueName))
             .build();
 
-        // Produce message to queue
         Produce.Output runOutput = task.run(runContext);
 
         Assertions.assertEquals(1, runOutput.getMessagesCount());
 
-        // Consume message from queue
         Consume consumeTask = Consume.builder()
             .messageDeserializer(Property.ofValue(Serdes.STRING))
             .username(Property.ofValue(solaceContainer.getUsername()))
@@ -113,5 +111,24 @@ class ProduceTest extends BaseSolaceIT {
             String content = reader.readLine();
             Assertions.assertTrue(content.contains("queue-message"));
         }
+    }
+
+    @Test
+    void shouldFailWhenBothOrNoDestinationSet() {
+        Produce both = Produce.builder()
+            .from(Map.of("payload", "msg"))
+            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .topicDestination(Property.ofValue("topic"))
+            .queueDestination(Property.ofValue("queue"))
+            .build();
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> both.run(runContextFactory.of()));
+
+        Produce neither = Produce.builder()
+            .from(Map.of("payload", "msg"))
+            .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
+            .build();
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> neither.run(runContextFactory.of()));
     }
 }

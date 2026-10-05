@@ -25,7 +25,6 @@ import io.kestra.plugin.solace.service.publisher.AbstractSolaceDirectMessagePubl
 import io.kestra.plugin.solace.service.publisher.DeliveryModes;
 import io.kestra.plugin.solace.service.publisher.SolaceDirectMessagePublisher;
 import io.kestra.plugin.solace.service.publisher.SolacePersistentMessagePublisher;
-import io.kestra.plugin.solace.service.publisher.SolaceQueueMessagePublisher;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -202,42 +201,18 @@ public class Produce extends AbstractSolaceTask implements RunnableTask<Produce.
             .orElseThrow()
             .create(runContext.render(getMessageSerializerProperties()).asMap(String.class, Object.class));
 
-        if (queueDestination != null) {
-            final String queueName = runContext.render(queueDestination)
-                .as(String.class)
-                .orElseThrow();
+        final String queueName = queueDestination == null
+            ? null
+            : runContext.render(queueDestination).as(String.class).orElseThrow(() -> new IllegalArgumentException("'queueDestination' is empty after rendering. Set it to the name of an existing queue."));
+        // The Solace Messaging API only publishes to topics; "#P2P/QUE/<name>" is the broker address of a queue.
+        final Topic topic = queueName != null
+            ? Topic.of("#P2P/QUE/" + queueName)
+            : Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
+        final DeliveryModes mode = queueName != null
+            ? DeliveryModes.PERSISTENT
+            : runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow();
 
-            SolaceQueueMessagePublisher sender = new SolaceQueueMessagePublisher(
-                runContext.render(getHost()).as(String.class).orElseThrow(),
-                runContext.render(getVpn()).as(String.class).orElseThrow(),
-                runContext.render(getUsername()).as(String.class).orElse(null),
-                runContext.render(getPassword()).as(String.class).orElse(null),
-                queueName,
-                serde,
-                runContext.render(getProperties()).asMap(String.class, String.class)
-            );
-
-            int totalSentMessages = sender.send(
-                stream,
-                runContext.render(messageProperties).asMap(String.class, Object.class)
-                    .entrySet()
-                    .stream()
-                    .collect(
-                        java.util.stream.Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> String.valueOf(entry.getValue())
-                        )
-                    )
-            );
-
-            runContext.metric(Counter.of("messages", totalSentMessages));
-
-            return new Output(totalSentMessages);
-        }
-
-        final Topic topic = Topic.of(runContext.render(topicDestination).as(String.class).orElseThrow());
-
-        AbstractSolaceDirectMessagePublisher sender = switch (runContext.render(deliveryMode).as(DeliveryModes.class).orElseThrow()) {
+        AbstractSolaceDirectMessagePublisher sender = switch (mode) {
             case DIRECT -> new SolaceDirectMessagePublisher(topic, serde, runContext.logger());
             case PERSISTENT -> new SolacePersistentMessagePublisher(
                 topic,
