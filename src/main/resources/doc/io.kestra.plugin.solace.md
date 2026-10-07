@@ -8,7 +8,7 @@ Set `host` to your Solace broker URL (required) and `vpn` to the message VPN nam
 
 ## Tasks
 
-`Produce` publishes messages to a `topicDestination` (required) — set `from` as the message source (required). Control serialization with `messageSerializer` (default `STRING`). Set `deliveryMode` to `PERSISTENT` (default) or `NON_PERSISTENT`.
+`Produce` publishes messages to either a `topicDestination` or a `queueDestination` (set exactly one) — set `from` as the message source (required). Control serialization with `messageSerializer` (default `STRING`). Set `deliveryMode` to `PERSISTENT` (default) or `DIRECT`. `deliveryMode` applies to topics only; messages sent to a queue are always persistent.
 
 `Consume` reads messages from a `queueName` (required) — set `queueType` (required). Bound the batch with `maxMessages` (default 100) and `maxDuration` (default 10 seconds). Filter with `messageSelector`. Control deserialization with `messageDeserializer` (default `STRING`).
 

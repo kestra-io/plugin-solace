@@ -2,6 +2,9 @@ package io.kestra.plugin.solace;
 
 import java.util.List;
 import java.util.Map;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.time.Duration;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -96,7 +99,7 @@ class ProduceTest extends BaseSolaceIT {
             .password(Property.ofValue(solaceContainer.getPassword()))
             .vpn(Property.ofValue(solaceContainer.getVpn()))
             .host(Property.ofValue(solaceContainer.getOrigin(Service.SMF)))
-            .maxDuration(Property.ofValue(java.time.Duration.ofSeconds(5)))
+            .maxDuration(Property.ofValue(Duration.ofSeconds(5)))
             .maxMessages(Property.ofValue(1))
             .queueName(Property.ofValue(queueName))
             .queueType(Property.ofValue(QueueTypes.DURABLE_EXCLUSIVE))
@@ -106,7 +109,7 @@ class ProduceTest extends BaseSolaceIT {
 
         Assertions.assertEquals(1, consumeOutput.getMessagesCount());
 
-        try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(
+        try (var reader = new BufferedReader(new InputStreamReader(
                 runContext.storage().getFile(consumeOutput.getUri())))) {
             String content = reader.readLine();
             Assertions.assertTrue(content.contains("queue-message"));
