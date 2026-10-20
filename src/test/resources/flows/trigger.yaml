@@ -12,6 +12,8 @@ triggers:
     queueName: test
     queueType: DURABLE_EXCLUSIVE
     messageDeserializer: STRING
+    labels:
+      team: data
 
 
 tasks:

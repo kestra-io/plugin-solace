@@ -11,6 +11,7 @@ import org.testcontainers.solace.Service;
 import com.google.common.collect.ImmutableMap;
 
 import io.kestra.core.junit.annotations.KestraTest;
+import io.kestra.core.models.Label;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.queues.QueueFactoryInterface;
@@ -23,8 +24,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import reactor.core.publisher.Flux;
 
+import static io.kestra.core.tenant.TenantService.MAIN_TENANT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 @KestraTest(startRunner = true, startScheduler = true)
@@ -80,8 +83,13 @@ class TriggerTest extends BaseSolaceIT {
         boolean await = queueCount.await(1, TimeUnit.MINUTES);
         assertThat(await, is(true));
 
-        Integer trigger = (Integer) receive.blockLast().getTrigger().getVariables().get("messagesCount");
+        Execution execution = receive.blockLast();
+        Integer trigger = (Integer) execution.getTrigger().getVariables().get("messagesCount");
 
         assertThat(trigger, greaterThanOrEqualTo(2));
+        assertThat(execution.getTenantId(), is(MAIN_TENANT));
+        assertThat(execution.getLabels(), hasItem(new Label("team", "data")));
+        assertThat(execution.getLabels(), hasItem(new Label(Label.FROM, "trigger")));
+        assertThat(execution.getLabels().stream().map(Label::key).toList(), hasItem(Label.CORRELATION_ID));
     }
 }
