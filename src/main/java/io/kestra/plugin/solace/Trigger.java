@@ -12,13 +12,12 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.conditions.ConditionContext;
 import io.kestra.core.models.executions.Execution;
-import io.kestra.core.models.executions.ExecutionTrigger;
-import io.kestra.core.models.flows.State;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.triggers.AbstractTrigger;
 import io.kestra.core.models.triggers.PollingTriggerInterface;
 import io.kestra.core.models.triggers.TriggerContext;
 import io.kestra.core.models.triggers.TriggerOutput;
+import io.kestra.core.models.triggers.TriggerService;
 import io.kestra.core.runners.RunContext;
 import io.kestra.plugin.solace.serde.Serdes;
 import io.kestra.plugin.solace.service.receiver.QueueTypes;
@@ -153,16 +152,6 @@ public class Trigger extends AbstractTrigger implements SolaceConsumeInterface, 
             return Optional.empty();
         }
 
-        ExecutionTrigger executionTrigger = ExecutionTrigger.of(this, output);
-        Execution execution = Execution.builder()
-            .id(runContext.getTriggerExecutionId())
-            .namespace(context.getNamespace())
-            .flowId(context.getFlowId())
-            .flowRevision(conditionContext.getFlow().getRevision())
-            .state(new State())
-            .trigger(executionTrigger)
-            .build();
-
-        return Optional.of(execution);
+        return Optional.of(TriggerService.generateExecution(this, conditionContext, context, output));
     }
 }
