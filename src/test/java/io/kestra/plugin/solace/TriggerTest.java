@@ -83,8 +83,8 @@ class TriggerTest extends BaseSolaceIT {
         boolean await = queueCount.await(1, TimeUnit.MINUTES);
         assertThat(await, is(true));
 
-        Execution execution = receive.blockLast();
-        Integer trigger = (Integer) execution.getTrigger().getVariables().get("messagesCount");
+        var execution = receive.blockLast();
+        var trigger = (Integer) execution.getTrigger().getVariables().get("messagesCount");
 
         assertThat(trigger, greaterThanOrEqualTo(2));
         assertThat(execution.getTenantId(), is(MAIN_TENANT));
